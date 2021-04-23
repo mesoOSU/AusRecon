@@ -1,0 +1,11 @@
+function [Parent,PCount] = ParAssign(Parent,PInds,PCount,T_ebsd,Or)
+    % Assign relevant data to Parent structure if grain was deemed to be
+    % a PAG
+    keyboard
+    PCount = PCount+1;
+    Parent.Indices{PCount} = T_ebsd(PInds).id;
+    Parent.Or{PCount} = Or;
+    Parent.Flg{PCount} = 1;
+
+end
+

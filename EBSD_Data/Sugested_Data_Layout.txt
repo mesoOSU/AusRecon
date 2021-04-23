@@ -1,0 +1,12 @@
+# Suggested Data Layout #
+
+For simplicity (and to also make actively maintinaing updating the git repo 
+easier) It is suggested that all data be stored in this folder, which is not
+actively tracked in the git. Furthermore, it is suggested that users place
+specific datasets within seperate sub folder.
+
+LINK TO A SET OF DISTRO A EBSD SCANS FOR TESTING:
+AF Research Lab link: 
+https://drive.google.com/drive/folders/1cw21aKhuaXX_yEq_0JA0GJTm7L0Oi91o?usp=sharing
+ELSZ Storage File location:
+sftp://sshfs.rdte.afrl.dren.mil/   location: /project/RXCM/DISTRO_A_Datasets_AusRecon

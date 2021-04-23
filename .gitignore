@@ -1,3 +1,19 @@
+#=======================================#
+# AusRecon - Spectific gitignore files and folders
+#=======================================#
+EBSD_Data/*
+!EBSD_Data/Sugested_Data_Layout.txt
+.spyproject/
+mtex-*
+*/.spyproject/
+*/mtex-*
+archive
+Python/testing
+Matlab/saved_workspaces
+
+#=======================================#
+#Copy/Pasted generic Pythonic gitignore
+#=======================================#
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
