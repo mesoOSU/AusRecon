@@ -80,10 +80,6 @@ function [Packet] = PacketChar(myEBSD,Grains,gId,Packet,Twin)
             % converting reconstruction code for cryspy. Then convert the
             % transposed variants to euler angles.
             
-            % Austin Addins
-   %%%         if size(tmpInds{nn},1)<1
-   %%%             disp("whoops")
-   %%%         else 
             Vst = 24*(nn-1)+1;
             Vnd = 24*nn;
             for i = Vst:Vnd
@@ -193,8 +189,6 @@ function [Packet] = PacketChar(myEBSD,Grains,gId,Packet,Twin)
             % Now fill in the graph for indices of parents and twins (if
             % they exist)
             WTs(tmpInds{nn},:) = Weights';
-            %Austin Addition
-%%%            end
         end
 %     end
         %% ``Denoising'' Section (Don't worry about)

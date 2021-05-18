@@ -256,7 +256,7 @@ function RunRecon(varargin)
 
     % Ignore Twin boundaries by setting to 1 
     Mergetwins = 1;
-   
+    
     % Returns Grains structure which includes grain size, corresponding id,
     % and ASTM information if requested based on the reconstruction space
     if strcmp(myEBSD.rec_space,'Mixed')
@@ -282,7 +282,7 @@ function RunRecon(varargin)
     % Loop through each PAG and assign a packet, block, and variant ID to
     % each pixel within the PAG
     for k = 1:length(Grains.grainId)
-
+        disp(['now working on Grain ' int2str(k)])
         % Now determine packets for the characterized austenite grains (ignores
         % the unassigned martensite)
         [Packets] = PacketChar(myEBSD,Grains,k,Packets,Twin);
