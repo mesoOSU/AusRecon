@@ -733,6 +733,23 @@ function [myEBSD,FullParent,FullTwin] = Recon_Mixed_SymOP(myEBSD,num_iters,OP,IP
     
     %%
     % Now put humpty-dumpty back together again
+%Austin addin - Get rid of unneeded stuff to help with error checking
+    clear Twin twn twn_accpt twn_count Twn_eul Twn_guesses TwnCount
+    clear Twns TwnEBSDInds TwnFlg TwnLocInds UnqOrs
+    clear TransEBSD_ci TransCT_ebsd Trans_MODF tp_count tmpWts tmpODF tmp_ci tmp_twn
+    clear Act_adjpts Act_mori Actc2gWts ActDiGraph ActEndnode ActIPwts ActiveTransInd ActMODF_vals ActOrs
+    clear ActSinknode ActTrans_ci ActTrans_ebsd ActTrans_Ors
+    clear c2g_wts c2gWts adjpts ci ci_id ConsNoCuts cs cs2 csPT
+    clear ct ctw ctcopy ctcopy2 ctcopyPT ctPT ct2 Curr_cutActive Curr_cutEBSD
+    clear Curr_cutActive Curr_cutEBSD CutInds DiGraph EbsdInd EBSDInds EndFlag
+    clear Endnode endnode2 endnodePT From_guess_ODF From_Or_guess From_Par_ODF
+    clear mf_c mf_c2 mf_cPT Misos modf_vals mori Sinknode sinknode2 sinknodePT
+    clear SkipMart psi Rec_ebsd num_iters New_Digraph NewCT_ind ParFlg ParInds
+    clear PT_CTind PT_cut PT_DiGraph PT_PIwts PT_ebsd PT_IPwts ParWts Par_Or
+    clear OPWts OP TransEbsd_ci Trans_ebsd TotCount T2R T1Inds T1Ors SymInds SymIndsFlg
+    clear R2T PreTransID PostTransID ParOr_guess Parent ParCount Orien NoCutCount
+    clear gfPT IP_wts IPwts IP ii iters len_Cpts len_preCT LenTwnInd local_odf LocInds
+    
     ParCnt = 1;
     TwnCnt = 1;
     TwnOrLst = orientation('euler',[0,0,0],CS_R);
@@ -841,7 +858,8 @@ function [myEBSD,FullParent,FullTwin] = Recon_Mixed_SymOP(myEBSD,num_iters,OP,IP
     ReconWts = FullWts;
     ReconEbsd = FullEbsd;
     PreTransInd = find(myEBSD.Ebsd.phase==ReconID);
-    Recon_pts(PreTransInd) = [];
+    % Austin Edit
+    % Recon_pts(PreTransInd) = [];
     ReconIds(PreTransInd) = [];
     ReconWts(PreTransInd) = [];
     ReconEbsd(PreTransInd) = [];
