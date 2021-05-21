@@ -10,17 +10,18 @@
 % Jump into mtex folder (alter as needed based on version) and start it up
 % NOTE: THIS IS NOT IN THE REPO BY DEFAULT. If you need MTEX, download the 
 % it from the mtex website: https://mtex-toolbox.github.io/download
-cd mtex-5.1.1
-startup_mtex
-cd ..
+% cd mtex-5.1.1
+% startup_mtex
+% cd ..
 addpath(genpath('Functions'));
 %% Access Reconstruction Algorithm
 % Folder/filename
 % fname = 'EBSD_Data/Timkin1.ctf';
 
-fname = 'EBSD_Data/angFiles/4D-XIII-A_1out.ang';
+fname = '../EBSD_Data/AF96_example.ang';
 % Possibilities after a single run
 % OR = myEBSD.OR; % You can type this myEBSD.OR into the workspace and then
+OR = [3.09,8.10,8.48];      % AF96 Sample
 % use OR = [...] (whatever the values are) 
 % intparams = [...] % Whatever you want them to be
 % myEBSD is the structure that returns everything. If you add myEBSD to the
@@ -28,8 +29,8 @@ fname = 'EBSD_Data/angFiles/4D-XIII-A_1out.ang';
 % the reconstruction.
 
 % When you are optimizing the results, run:
-% RunRecon1(fname)
-RunRecon(fname)
+
+RunRecon(fname,OR)
 % You can still add OR, and/or intparams; myEBSD to the RunRecon1 function 
 % input as well! This will perform reconstruction on a truncated portion of
 % the dataset to save time.

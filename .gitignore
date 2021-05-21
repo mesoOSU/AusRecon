@@ -3,6 +3,7 @@
 #=======================================#
 EBSD_Data/*
 !EBSD_Data/Sugested_Data_Layout.txt
+!EBSD_Data/AF96_example.ang
 .spyproject/
 mtex-*
 */.spyproject/
