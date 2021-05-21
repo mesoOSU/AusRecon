@@ -37,6 +37,7 @@ function [Grains,Twin,Parent] = GrainSize(myEBSD,Twin,Parent,Merge)
     % for cleaner images
     OrigAus = find(myEBSD.Ebsd.phase==ReconID);
     Ebsd(OrigAus)=[];
+    Ebsd('Martensite') = [];
     [grains,Ebsd.grainId] = calcGrains(Ebsd,'angle',2*degree);
     grains(grains.grainSize<25)=[];
     % Find the unique orientations within the grain structure and make sure
