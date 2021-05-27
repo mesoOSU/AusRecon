@@ -260,7 +260,7 @@ function RunRecon(varargin)
     % Returns Grains structure which includes grain size, corresponding id,
     % and ASTM information if requested based on the reconstruction space
     if strcmp(myEBSD.rec_space,'Mixed')
-        [Grains,Twin,Parent] = GrainSize_MixedSpace(myEBSD,Twin,Parent,Mergetwins);
+        [Grains,Twin,Parent,myEBSD] = GrainSize_MixedSpace(myEBSD,Twin,Parent);
     else
         [Grains] = GrainSize_SingSpace(myEBSD,Twin,Mergetwins);
     end

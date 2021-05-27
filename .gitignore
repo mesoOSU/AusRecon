@@ -11,6 +11,7 @@ mtex-*
 archive
 Python/testing
 Matlab/saved_workspaces
+*.mat
 
 #=======================================#
 #Copy/Pasted generic Pythonic gitignore
