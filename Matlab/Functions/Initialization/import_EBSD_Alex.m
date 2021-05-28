@@ -145,6 +145,17 @@ function [myEBSD] = import_EBSD(fname,myEBSD)
         % Create an EBSD variable containing the data
     ebsd = loadEBSD(fname,myEBSD.CS,'interface',ftype,'convertEuler2SpatialReferenceFrame');
     ebsd=ebsd.fill;
+    % Austin addin: a catch to fix unindexed files
+    if unique(ebsd.phase) == 0
+        disp("=============================================================")
+        disp("======================     WARNING     ======================")
+        disp("=============================================================")
+        disp("    You have added in a file with no indexed points.")
+        disp("Operating under the assumption that all points are Child Phase")
+        disp("=============================================================")
+        disp("=============================================================")
+         ebsd.phaseMap = [0,1,2];
+    end
     if num_phases > 2
         tmpEb = ebsd;
         nontranspts = find(ebsd.phase~=(posttrans-1) & ebsd.phase~=(pretrans-1));

@@ -282,23 +282,25 @@ function RunRecon(varargin)
     % Loop through each PAG and assign a packet, block, and variant ID to
     % each pixel within the PAG
     for k = 1:length(Grains.grainId)
-        disp(['now working on Grain ' int2str(k)])
-        % Now determine packets for the characterized austenite grains (ignores
-        % the unassigned martensite)
-        [Packets] = PacketChar(myEBSD,Grains,k,Packets,Twin);
-        
-        % The actual austenite id number
-        AusId = Packets{k}.AusGrain.id;
-        
-        % For each pixel in the EBSD microstructure, fill with the
-        % corresponding packet, block, and variant assignments
-        PackRecon(AusId)       = Packets{k}.Boundaries;
-        PackReconWts(AusId)    = Packets{k}.Weights;
-        BlockRecon(AusId)      = Packets{k}.Block.Boundaries;
-        BlockReconWts(AusId)   = Packets{k}.Block.Weights;
-        VariantRecon(AusId)    = Packets{k}.Variants.List;
-        VariantReconWts(AusId) = Packets{k}.Variants.Weights;
-        
+        disp(['now working on Grain ' int2str(k) 'of ' int2str(length(Grains.grainId))])
+        try
+            % Now determine packets for the characterized austenite grains (ignores
+            % the unassigned martensite)
+            [Packets] = PacketChar(myEBSD,Grains,k,Packets,Twin);    
+            % The actual austenite id number
+            AusId = Packets{k}.AusGrain.id;
+            % For each pixel in the EBSD microstructure, fill with the
+            % corresponding packet, block, and variant assignments
+            PackRecon(AusId)       = Packets{k}.Boundaries;
+            PackReconWts(AusId)    = Packets{k}.Weights;
+            BlockRecon(AusId)      = Packets{k}.Block.Boundaries;
+            BlockReconWts(AusId)   = Packets{k}.Block.Weights;
+            VariantRecon(AusId)    = Packets{k}.Variants.List;
+            VariantReconWts(AusId) = Packets{k}.Variants.Weights;
+        catch
+            disp(['Error: on grain ' int2str(k) ' The code failed to properly segment the']) 
+            disp('packets. This is likely due to a twinning effect.')
+        end
     end
     
     
