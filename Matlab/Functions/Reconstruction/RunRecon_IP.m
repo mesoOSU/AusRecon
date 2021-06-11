@@ -367,11 +367,4 @@ function RunRecon(varargin)
     myEBSD.AusGrnPackets = Packets;
     myEBSD.filename = filename;
     assignin('base','myEBSD',myEBSD);
-    
-    
-    [path,name,~] = fileparts(filename);
-    mat_name = [path '/'  name '_Recon.mat'];
-    save(mat_name,'myEBSD')
-    clear path name
-
 end

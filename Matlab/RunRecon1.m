@@ -1,4 +1,4 @@
-function RunRecon1(varargin)
+function RunRecon(varargin)
     % Home script with all requisite functions related to:
     % 1.) Loading ebsd dataset
     % 2.) Assistance in truncating ebsd dataset to specific region and plotting
@@ -88,10 +88,10 @@ function RunRecon1(varargin)
         % phases in the input ebsd dataset (n_phases), keeps track of the original
         % ebsd dataset (origEbsd) and the Ebsd dataset that we will want to work 
         % with from here on out (Ebsd) to myEBSD structure
-        [myEBSD] = import_EBSD(filename,myEBSD);
+        [myEBSD] = import_EBSD_Alex(filename,myEBSD);
 
         clear filetype pathname 
-        assignin('base','myEBSD',myEBSD)
+        %%% assignin('base','myEBSD',myEBSD)
     
 
     %% 2.) Truncating Dataset and Plotting
@@ -100,15 +100,15 @@ function RunRecon1(varargin)
     % ebsd dataset in order to easily compare with the etched results for
     % validation purposes)
     
-%     myEBSD.Ebsd.y = flipud(myEBSD.Ebsd.y);
-    truncate = 1;
+    myEBSD.Ebsd.y = flipud(myEBSD.Ebsd.y);
+    truncate = 0;
     if truncate == 1
 
         % AF96 SEM portion
-        xmin = 1;
-        xmax = 70;
-        ymin = 1;
-        ymax = 70;
+        xmin = 446;
+        xmax = 712;
+        ymin = 19;
+        ymax = 243;
 
         % Adds TruncEbsd to myEBSD structure
         [myEBSD] = truncate_ebsd(myEBSD,xmin,xmax,ymin,ymax);
@@ -146,7 +146,7 @@ function RunRecon1(varargin)
         % Adds computed ksi values and the loglikelihood of generated ksi values
         % (ksi{1} and ksi{2}, respectively) to myEBSD structure
         [myEBSD] = AutoOR_estimation(myEBSD,plt_mart,plt_vars,mart_Ors,plt_ksi);
-        assignin('base','myEBSD',myEBSD)
+        %%% assignin('base','myEBSD',myEBSD)
         %         [myEBSD] = OR_estimation(myEBSD,plt_mart,plt_vars,gen,mart_Ors,plt_ksi);
     end
     %% 4a.) Parameters for Reconstruction
@@ -159,7 +159,7 @@ function RunRecon1(varargin)
     % faction
     if isfield(myEBSD,'MODF')==0
         [myEBSD] = calcMODF(myEBSD);
-        assignin('base','myEBSD',myEBSD)
+        %%% assignin('base','myEBSD',myEBSD)
     end
     
     % If dataset is deemed large enough, splits the dataset into 4
@@ -195,7 +195,7 @@ function RunRecon1(varargin)
             % "Reconstruction" to designate low-likelihood regions
             myEBSD = GridStructure(myEBSD,grid_x,grid_y,plot_grid);
         end
-    assignin('base','myEBSD',myEBSD)
+    %%% assignin('base','myEBSD',myEBSD)
     end
     
     %% 4b.) Perform Austenite Reconstruction and Plot
@@ -228,11 +228,11 @@ function RunRecon1(varargin)
     Likelihood = myEBSD.Recon.Likelihood;
 %     myEBSD.Recon.Likelihood = Likelihood;
 
-    assignin('base','AusRecon_Ebsd',AusRecon)
-    assignin('base','AusRecon_Likelihood',Likelihood)
-    assignin('base','myEBSD',myEBSD)
-    assignin('base','ParentGrains',Parent)
-    assignin('base','TwinGrains',Twin)
+    %%% assignin('base','AusRecon_Ebsd',AusRecon)
+    %%% assignin('base','AusRecon_Likelihood',Likelihood)
+    %%% assignin('base','myEBSD',myEBSD)
+    %%% assignin('base','ParentGrains',Parent)
+    %%% assignin('base','TwinGrains',Twin)
 
     % figure; plot(Recon_Ebsd('a'),Recon_Ebsd('a').orientations)
     % hold on
@@ -256,17 +256,17 @@ function RunRecon1(varargin)
 
     % Ignore Twin boundaries by setting to 1 
     Mergetwins = 1;
-   
+    
     % Returns Grains structure which includes grain size, corresponding id,
     % and ASTM information if requested based on the reconstruction space
     if strcmp(myEBSD.rec_space,'Mixed')
-        [Grains,Twin,Parent] = GrainSize_MixedSpace(myEBSD,Twin,Parent,Mergetwins);
+        [Grains,Twin,Parent,myEBSD] = GrainSize_MixedSpace(myEBSD,Twin,Parent);
     else
         [Grains] = GrainSize_SingSpace(myEBSD,Twin,Mergetwins);
     end
     
     % Save the 'Grain' structure to the EBSD workspace for the user
-    assignin('base','AusGrains',Grains)
+    %%% assignin('base','AusGrains',Grains)
 
     %% 8.) Martensite Packet Boundary Characterization
 
@@ -282,23 +282,25 @@ function RunRecon1(varargin)
     % Loop through each PAG and assign a packet, block, and variant ID to
     % each pixel within the PAG
     for k = 1:length(Grains.grainId)
-
-        % Now determine packets for the characterized austenite grains (ignores
-        % the unassigned martensite)
-        [Packets] = PacketChar(myEBSD,Grains,k,Packets,Twin);
-        
-        % The actual austenite id number
-        AusId = Packets{k}.AusGrain.id;
-        
-        % For each pixel in the EBSD microstructure, fill with the
-        % corresponding packet, block, and variant assignments
-        PackRecon(AusId)       = Packets{k}.Boundaries;
-        PackReconWts(AusId)    = Packets{k}.Weights;
-        BlockRecon(AusId)      = Packets{k}.Block.Boundaries;
-        BlockReconWts(AusId)   = Packets{k}.Block.Weights;
-        VariantRecon(AusId)    = Packets{k}.Variants.List;
-        VariantReconWts(AusId) = Packets{k}.Variants.Weights;
-        
+        disp(['now working on Grain ' int2str(k) ' of ' int2str(length(Grains.grainId))])
+        try
+            % Now determine packets for the characterized austenite grains (ignores
+            % the unassigned martensite)
+            [Packets] = PacketChar(myEBSD,Grains,k,Packets,Twin);    
+            % The actual austenite id number
+            AusId = Packets{k}.AusGrain.id;
+            % For each pixel in the EBSD microstructure, fill with the
+            % corresponding packet, block, and variant assignments
+            PackRecon(AusId)       = Packets{k}.Boundaries;
+            PackReconWts(AusId)    = Packets{k}.Weights;
+            BlockRecon(AusId)      = Packets{k}.Block.Boundaries;
+            BlockReconWts(AusId)   = Packets{k}.Block.Weights;
+            VariantRecon(AusId)    = Packets{k}.Variants.List;
+            VariantReconWts(AusId) = Packets{k}.Variants.Weights;
+        catch
+            disp(['Error: on grain ' int2str(k) ' The code failed to properly segment the']) 
+            disp('packets. This is likely due to a twinning effect.')
+        end
     end
     
     
@@ -349,13 +351,27 @@ function RunRecon1(varargin)
     
     % Add RGB values to subblock designations
     myEBSD.Variants.RGB = SubBlckRGB;
-    assignin('base','AusGrnPackets',Packets);
+    %%% assignin('base','AusGrnPackets',Packets);
     
     %%
     myEBSD = CharMartBoundaries(myEBSD);
-    assignin('base','myEBSD',myEBSD);
+    %%% assignin('base','myEBSD',myEBSD);
     %%
     % Now write pertinent data to the text file
-    genTxt(myEBSD,Twin,Grains,filename)
+    % genTxt(myEBSD,Twin,Grains,filename)
+    myEBSD.AusRecon_Ebsd = AusRecon;
+    myEBSD.AusRecon_Likelihood = Likelihood;
+    myEBSD.TwinGrains = Twin;
+    myEBSD.ParentGrains = Parent;
+    myEBSD.AusGrains = Grains;
+    myEBSD.AusGrnPackets = Packets;
+    myEBSD.filename = filename;
+    assignin('base','myEBSD',myEBSD);
+    
+    
+    [path,name,~] = fileparts(filename);
+    mat_name = [path '/'  name '_Recon.mat'];
+    save(mat_name,'myEBSD')
+    clear path name
 
 end

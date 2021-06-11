@@ -21,7 +21,7 @@ addpath(genpath('Functions'));
 fname = '../EBSD_Data/AF96_example.ang';
 % Possibilities after a single run
 % OR = myEBSD.OR; % You can type this myEBSD.OR into the workspace and then
-OR = [3.09,8.10,8.48];      % AF96 Sample
+OR = [3.09,8.10,8.48];      % AF96 Sample [0.915447390857388,9.245004817251438,9.258634331312445]
 % use OR = [...] (whatever the values are) 
 % intparams = [...] % Whatever you want them to be
 % myEBSD is the structure that returns everything. If you add myEBSD to the
@@ -31,6 +31,7 @@ OR = [3.09,8.10,8.48];      % AF96 Sample
 % When you are optimizing the results, run:
 
 RunRecon(fname,OR)
+% RunRecon(fname)
 % You can still add OR, and/or intparams; myEBSD to the RunRecon1 function 
 % input as well! This will perform reconstruction on a truncated portion of
 % the dataset to save time.

@@ -21,7 +21,7 @@ addpath(genpath('Functions'));
 %https://drive.google.com/drive/folders/1cw21aKhuaXX_yEq_0JA0GJTm7L0Oi91o?usp=sharing
 %ELSZ Storage File location:
 %sftp://sshfs.rdte.afrl.dren.mil/   location: /project/RXCM/DISTRO_A_Datasets_AusRecon
-Foldername = '../EBSD_Data/angFiles3';
+Foldername = '../EBSD_Data/ang_5';
 % This searches through the folder names and collects them into a single
 % array
 Fnames = dir(Foldername);
@@ -38,26 +38,48 @@ for ii = 3:length(Fnames)
     % Remove '.ang' from filename to save plots as the filename.png
     Pltname = Fnames(ii).name;
     Pltname = strrep(Pltname,'.ang','');
-
     % Run the algorithm. Remove OR to automatically determine it.
     RunRecon(fname,OR)
     
+    % Make some plots
     % All plots are 4x6 inches on standard paper size, and should be
     % represented by the same number of pixels.
-    %% Plot Grain Boundaries
-    figure; plot(AusGrains.grains.boundary,'MicronBar','off')
+
+    % Plot 1: EBSD Map
+    plotEBSD(myEBSD.Ebsd,myEBSD)
     set(gcf,'PaperUnits','inches','PaperPosition',[0,0,4,3]);
     set(gcf, 'PaperPositionMode', 'auto')
-    Plt1name = [Foldername,'/',Pltname,'_','Grain_Boundaries','.png'];
+    Plt1name = [Foldername,'/',Pltname,'_EBSD.png'];
     saveas(gcf,Plt1name)
 
-    %% Plot Sub-Blocks
-    PltSubBlocks(myEBSD,1)
+    % Plot 2: Prior Austenite Grains
+    mbar = 1;
+    plotEBSD(myEBSD.AusRecon_Ebsd,myEBSD,mbar)
+    hold on
+    plot(myEBSD.AusGrains.grains.boundary)
     set(gcf,'PaperUnits','inches','PaperPosition',[0,0,4,3]);
     set(gcf, 'PaperPositionMode', 'auto')
-    Plt2name = [Foldername,'/',Pltname,'_','Variants','.png'];
-    saveas(gcf,Plt2name)
-    catch
-    end
+    Plt1name = [Foldername,'/',Pltname,'_Austenite.png'];
+    saveas(gcf,Plt1name)
+
+    % Plot 3: Sub Blocks
+    PltSubBlocks(myEBSD,mbar)
+    hold on
+    plot(myEBSD.AusGrains.grains.boundary,'FaceColor','white')
+    set(gcf,'PaperUnits','inches','PaperPosition',[0,0,4,3]);
+    set(gcf, 'PaperPositionMode', 'auto')
+    Plt1name = [Foldername,'/',Pltname,'_Variants.png'];
+    saveas(gcf,Plt1name)
+
+    % Plot 4: Likelihood plots
+    figure; plot(myEBSD.AusRecon_Ebsd,myEBSD.AusRecon_Likelihood,'MicronBar','off')
+    hold on
+    plot(myEBSD.AusGrains.grains.boundary,'lineColor','red','linewidth',2)
+    set(gcf,'PaperUnits','inches','PaperPosition',[0,0,4,3]);
+    set(gcf, 'PaperPositionMode', 'auto')
+    Plt1name = [Foldername,'/',Pltname,'_Likelihood.png'];
+    saveas(gcf,Plt1name)
     
+    catch
+    end    
 end

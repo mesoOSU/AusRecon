@@ -264,9 +264,9 @@ function [Grains,Twin,Parent,myEBSD] = GrainSize_MixedSpace(varargin)
         % Identify which specific twin (based on rotation) is present in 
         % the merged parent-twin cases
         for jj = 1:length(grains)
-            if jj == 68
-                keyboard
-            end
+%            if jj == 68
+%                keyboard
+%            end
             
             % If the grain is oriented normal to the reference frame, it
             % is an unassigned martensite region and we ignore it

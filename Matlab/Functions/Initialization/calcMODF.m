@@ -24,7 +24,8 @@ function [myEBSD] = calcMODF(myEBSD)
     mori=inv(TransOrs)*TransOrs2;
     
     % Construct MODF and add to our structure
-    trans_modf=calcODF(mori,'kernel',psi);
+    warning('off','MTEX:EBSD:calcODF')
+    trans_modf=calcODF(mori,'kernel',psi,'silent');
     
     % Add modf and psi value to our structure
     myEBSD.MODF = trans_modf;
