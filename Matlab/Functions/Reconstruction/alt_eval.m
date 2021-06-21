@@ -16,7 +16,7 @@ function f = alt_eval(odf_component,orientations,varargin)
 % kernel/sum_K kernel/K
 
 persistent plans;
-addpath('mtex-5.1.1/extern/nfft')
+addpath('mtex-5.1.1/extern/nfft') %TODO: This is not general unless mtex-5.1.1 is included in the ausrecon pkg. Can we query the mtex folder to find nfft?
 
 % Command for if the user wants to clear all plans;
 if check_option(varargin,'terminate_all_plans')

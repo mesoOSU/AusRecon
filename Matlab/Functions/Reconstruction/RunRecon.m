@@ -371,7 +371,7 @@ function RunRecon(varargin)
     
     [path,name,~] = fileparts(filename);
     mat_name = [path '/'  name '_Recon.mat'];
-    save(mat_name,'myEBSD')
+    save(mat_name, 'myEBSD', '-v7.3')
     clear path name
 
 end
