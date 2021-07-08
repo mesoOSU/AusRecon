@@ -19,6 +19,7 @@ addpath(genpath('Functions'));
 % fname = 'EBSD_Data/Timkin1.ctf';
 
 fname = '../EBSD_Data/AF96_example.ang';
+
 % Possibilities after a single run
 % OR = myEBSD.OR; % You can type this myEBSD.OR into the workspace and then
 OR = [3.09,8.10,8.48];      % AF96 Sample [0.915447390857388,9.245004817251438,9.258634331312445]
@@ -30,7 +31,7 @@ OR = [3.09,8.10,8.48];      % AF96 Sample [0.915447390857388,9.245004817251438,9
 
 % When you are optimizing the results, run:
 
-RunRecon(fname,OR)
+RunRecon(fname)
 % RunRecon(fname)
 % You can still add OR, and/or intparams; myEBSD to the RunRecon1 function 
 % input as well! This will perform reconstruction on a truncated portion of
@@ -50,22 +51,22 @@ plotEBSD(myEBSD.Ebsd,myEBSD)
 % outline the determined PAG boundaries in black.
 % figure; plot(AusRecon_Ebsd,AusRecon_Ebsd.orientations,'MicronBar','off')
 mbar = 1;
-plotEBSD(AusRecon_Ebsd,myEBSD,mbar)
+plotEBSD(myEBSD.AusRecon_Ebsd,myEBSD,mbar)
 hold on
-plot(AusGrains.grains.boundary)
+plot(myEBSD.AusGrains.grains.boundary)
 
 %% Plot Austenite Likelihood Plot
 
 % Plot likelihood plot of chosen austenite orientations transforming the
 % observed martensitic microstructure
-figure; plot(AusRecon_Ebsd,AusRecon_Likelihood,'MicronBar','off')
+figure; plot(myEBSD.AusRecon_Ebsd,myEBSD.AusRecon_Likelihood,'MicronBar','off')
 
 %% Plot Grain Structure With Labels
 
 % Plot grain structure or merged twins with the corresponding numbering of
 % each grain (if set to 1; otherwise, it will just plot the grain boundary
 % structure without labeling
- plotGrains(AusGrains,1);
+ plotGrains(myEBSD.AusGrains,1);
 
 %% Plot Segmented Packets Over Entire Microstructure 
 
@@ -75,7 +76,7 @@ figure; plot(AusRecon_Ebsd,AusRecon_Likelihood,'MicronBar','off')
 mbar = 1;
 PltAllPackets(myEBSD,mbar);
 hold on
-plot(AusGrains.grains.boundary)
+plot(myEBSD.AusGrains.grains.boundary)
 
 %% Plot Segmented Blocks Over Entire Microstructure
 % Same concept for plotting blocks except the block colors adhere to the 
@@ -84,7 +85,7 @@ plot(AusGrains.grains.boundary)
 
 PltAllBlocks(myEBSD,mbar);
 hold on
-plot(AusGrains.grains.boundary,'FaceColor','white')
+plot(myEBSD.AusGrains.grains.boundary,'FaceColor','white')
 
 %% Plot Sub-Blocks
 
@@ -94,7 +95,7 @@ plot(AusGrains.grains.boundary,'FaceColor','white')
 
 PltSubBlocks(myEBSD,mbar)
 hold on
-plot(AusGrains.grains.boundary,'FaceColor','white')
+plot(myEBSD.AusGrains.grains.boundary,'FaceColor','white')
 
 % You don't need to run anything below HERE!!!
 
@@ -105,7 +106,7 @@ plot(AusGrains.grains.boundary,'FaceColor','white')
 % martensite variants from within the chosen PAG; packet boundaries; and 
 % the corresponding weights.
 grnId = 7;
-PltSngGrnPackets(myEBSD,AusGrnPackets,grnId)
+PltSngGrnPackets(myEBSD,myEBSD.AusGrnPackets,grnId)
 
 %% Plot Packet Orientation Pole Figures (Both Theoretical and Segmented)
 
@@ -115,7 +116,7 @@ PltSngGrnPackets(myEBSD,AusGrnPackets,grnId)
 
 % Directions (can choose up to three)
 Dir = [0,0,1];
-PltPacketPDFs(myEBSD,AusGrnPackets,grnId,Dir)
+PltPacketPDFs(myEBSD,myEBSD.AusGrnPackets,grnId,Dir)
 
 %% Plot Single Austenite Grain And Segmented Blocks
 
@@ -123,14 +124,14 @@ PltPacketPDFs(myEBSD,AusGrnPackets,grnId,Dir)
 % colormap used to plot block boundaries over the entire microstructure.
 % Same output as the packet case except substitute blocks for packets.
 grnId = 7;
-PltSngGrnBlocks(myEBSD,AusGrnPackets,grnId)
+PltSngGrnBlocks(myEBSD,myEBSD.AusGrnPackets,grnId)
 
 %% Plot Block Orientation Pole Figures (Theoretical and Segmented)
 % Directions (can choose up to three)
 grnId = 7;
 
 Dir = [0,0,1];
-PltBlockPDFs(myEBSD,AusGrnPackets,grnId,Dir)
+PltBlockPDFs(myEBSD,myEBSD.AusGrnPackets,grnId,Dir)
 
 %% Plot Paired Bain Variants (Even And Odd)
 
@@ -140,4 +141,4 @@ PltBlockPDFs(myEBSD,AusGrnPackets,grnId,Dir)
 % PAG boundaries in 'white.'
 PltPairedVars(myEBSD,mbar)
 hold on
-plot(AusGrains.grains.boundary,'FaceColor','white')
+plot(myEBSD.AusGrains.grains.boundary,'FaceColor','white')
