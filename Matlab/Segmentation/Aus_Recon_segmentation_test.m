@@ -12,7 +12,7 @@ CS_A = Aus.CS;
 CS_M = Mart.CS;
 SS   = myEBSD.SS;
 OR = myEBSD.OR;
-clear myEBSD
+% clear myEBSD
 
 %segment the Aus map and create a GB structure (this step treats Twin and
 %prior grians the same way, S3 and s9 ID come later
@@ -118,11 +118,32 @@ sq_var_M2A = reshape(Variants_M2A,x_size,y_size);
  
 X = [0:0.5:160];
 Y = [0:0.5:160];
+%EVERYTHING ABOVE HERE WORKS NOW
 
+%   ===================================================================  %
+% % ERIC: Start looking here.
+% Figure 9 is an example of just the packet segmentation, no coloration.
+% Segmentation looks good to me (as in, Variant boundaries are in the right
+% spot)
+%   ===================================================================  %
 figure(9)
 plot(Aus_gb_merged.boundary,'linecolor','k','linewidth',2)
 hold on
+% var_plot = pcolor(X,Y,sq_var_A2M);
 var_plot = pcolor(X,Y,sq_var_A2M);
+var_plot.EdgeColor = 'none';
+plot(Aus_gb_merged.boundary,'linecolor','k','linewidth',2)
+hold off
+
+% Figure 10 and 11 SHOULD be the variants grouped by Packets, but neither
+% lines up correctly. Not sure why. One goes from A-to-M, the other M-to-A.
+% Noteably, they are both wrong in different ways, which is counter to what
+% I thought would happen.
+figure(10)
+plot(Aus_gb_merged.boundary,'linecolor','k','linewidth',2)
+hold on
+% var_plot = pcolor(X,Y,sq_var_A2M);
+var_plot = pcolor(X,Y,floor(sq_var_A2M/6)*6);
 var_plot.EdgeColor = 'none';
 plot(Aus_gb_merged.boundary,'linecolor','k','linewidth',2)
 hold off
@@ -130,41 +151,47 @@ hold off
 figure(11)
 plot(Aus_gb_merged.boundary,'linecolor','k','linewidth',2)
 hold on
-var_plot = pcolor(X,Y,sq_var_M2A);
+% var_plot = pcolor(X,Y,sq_var_M2A);
+var_plot = pcolor(X,Y,floor(sq_var_M2A/6)*6);
 var_plot.EdgeColor = 'none';
 plot(Aus_gb_merged.boundary,'linecolor','k','linewidth',2)
 hold off
 
-%EVERYTHING ABOVE HERE WORKS NOW
+%ERIC: here is where i started coloring things. Ignore the Container.Maps,
+%I dont use them anymore, but i'm leaving them there in case i revert back
+%for some reason
 
 %Austin note to future Austin: brackets mean cell. semi-colons mean column
 % start of thing that should be function
-Packet_RGB  = {[0 0 0];
+Packet_RGB  = {
     [1 0 0];[1 0 0];[1 0 0];[1 0 0];[1 0 0];[1 0 0];
     [0 1 0];[0 1 0];[0 1 0];[0 1 0];[0 1 0];[0 1 0];
     [0 0 1];[0 0 1];[0 0 1];[0 0 1];[0 0 1];[0 0 1];
-    [1 1 0];[1 1 0];[1 1 0];[1 1 0];[1 1 0];[1 1 0]};
+    [1 1 0];[1 1 0];[1 1 0];[1 1 0];[1 1 0];[1 1 0];
+    [0 0 0]};
 Packet_RGB = cellfun(@(x) x./1,Packet_RGB,'UniformOutput',false);
 Packet_map = containers.Map([0:24],Packet_RGB);
 
-Block_RGB = {[0 0 0];
+Block_RGB = {
     [252 122 120]; [252 122 120]; [250 4   0  ]; [250 4   0  ];
     [102 0   0  ]; [102 0   0  ]; [120 252 122]; [120 252 122];
     [4   250 0  ]; [4   250 0  ]; [0   125 2  ]; [0   125 2  ];
     [130 125 253]; [130 125 253]; [2   2   250]; [2   2   250];
     [1   1   100]; [1   1   100]; [220 220 170]; [220 220 170];
-    [250 250 2  ]; [250 250 2  ]; [227 176 10 ]; [227 176 10 ]; };
+    [250 250 2  ]; [250 250 2  ]; [227 176 10 ]; [227 176 10 ];
+    [0 0 0];};
 Block_RGB = cellfun(@(x) x./255,Block_RGB,'UniformOutput',false);
 Block_map = containers.Map([0:24],Block_RGB);
 
 
-Variant_RGB = {[0 0 0];
+Variant_RGB = {
     [227,97 ,95 ];[255,147,145];[225,4  ,0  ];[255,4  ,0  ];
     [77 ,0  ,0  ];[127,0  ,0  ];[95 ,227,97 ];[145,255,147];
     [4  ,225,0  ];[4  ,255,0  ];[0  ,100,2  ];[0  ,150,2  ];
     [105,100,228];[155,150,255];[2  ,2  ,225];[2  ,2  ,255];
     [1  ,1  ,75 ];[1  ,1  ,125];[195,195,145];[245,245,195];
-    [225,225,2  ];[255,255,2  ];[202,151,10 ];[252,201, 10]};
+    [225,225,2  ];[255,255,2  ];[202,151,10 ];[252,201, 10]
+    [0 0 0];};
 Variant_RGB = cellfun(@(x) x./255,Variant_RGB,'UniformOutput',false);
 Variant_map = containers.Map([0:24],Variant_RGB);
 
@@ -173,7 +200,30 @@ BRGB = cell2mat(Block_RGB);
 VRGB = cell2mat(Variant_RGB);
 %end of thing that should be function
 
-figure(10)
+blk = (floor((sq_var_A2M-1)/2)+1)*2;
+pkt = (floor((sq_var_A2M-1)/6)+1)*6;
+
+%ERIC: Plots below should be maps colored by variant, block, and packet,
+%but again, they are wrong. Not sure why anymore.
+figure(12)
+plot(Aus_gb_merged.boundary,'linecolor','k','linewidth',2)
+hold on
+var_plot = pcolor(X,Y,blk);
+var_plot.EdgeColor = 'none';
+colormap(BRGB)
+plot(Aus_gb_merged.boundary,'linecolor','k','linewidth',2)
+hold off
+
+figure(13)
+plot(Aus_gb_merged.boundary,'linecolor','k','linewidth',2)
+hold on
+var_plot = pcolor(X,Y,pkt);
+var_plot.EdgeColor = 'none';
+colormap(PRGB)
+plot(Aus_gb_merged.boundary,'linecolor','k','linewidth',2)
+hold off
+
+figure(14)
 plot(Aus_gb_merged.boundary,'linecolor','k','linewidth',2)
 hold on
 var_plot = pcolor(X,Y,sq_var_A2M+1);
