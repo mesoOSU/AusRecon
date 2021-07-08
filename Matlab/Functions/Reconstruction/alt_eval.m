@@ -16,7 +16,13 @@ function f = alt_eval(odf_component,orientations,varargin)
 % kernel/sum_K kernel/K
 
 persistent plans;
-addpath('mtex-5.1.1/extern/nfft')
+%NOTE TO FUTURE READERS: I don't think this needs to be added to the path
+%every time, but also don't think it slows down the code, so I'm leaving it
+%as is. feel free to change.
+nfft_path = [mtex_path '\extern\nfft'];
+addpath(nfft_path)
+%('C:/Users/arger/workspace/AusRecon/Matlab/mtex-5.1.1/extern/nfft')
+%addpath('mtex-5.1.1/extern/nfft')
 
 % Command for if the user wants to clear all plans;
 if check_option(varargin,'terminate_all_plans')

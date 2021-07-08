@@ -1,17 +1,29 @@
-x=1:256;
-y=1:256;
-[X,Y] = meshgrid(x,y);
+% Load example data
+mtexdata twins
 
-%Problem was juxt X=X(:) made a column vector, but to get the writer to work,
-% you need row vectors (AKA, the transopose
-% Explicit way to make rows:
-% X = reshape(X,[1,256*256]);;
-% Y = reshape(Y,[1,256*256]);
-%Speedy quick way to make rows
-X = X(:).';
-Y = Y(:).';
+%segment that data
+[grains, ebsd.grainId,ebsd.mis2mean]=calcGrains(ebsd('indexed'),'angle',5*degree);
 
-A = [X,Y];
-fID = fopen('test.txt','wt');
-fprintf(fID, '%6.0f   %6.0f \n', [X; Y]);
-fclose(fID);
+%remove tiny grains
+ebsd(grains(grains.grainSize<3)) = [];
+[grains,ebsd.id,ebsd.mis2mean] = calcGrains(ebsd('indexed'),'ang;e',5*degree);
+
+%smooth them
+grains = grains.smooth(5);
+plot(grains,grains.meanOrientation)
+
+CS = grains.CS;
+gB =grains.boundary;
+
+gB_MgMg = gB('Magnesium','Magnesium');
+plot(gB_MgMg,gB_MgMg.misorientation.angle./degree,'linewidth',2)
+
+ind = gB_MgMg.misorientation.angle>85*degree & gB_MgMg.misorientation.angle<87*degree;
+mori = gB_MgMg.misorientation(ind);
+
+scatter(mori)
+
+% determine the mean of the cluster
+mori_mean = mean(mori,'robust')
+% determine the closest special orientation relation ship
+round2Miller(mori_mean)
