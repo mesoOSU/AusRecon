@@ -1,16 +1,13 @@
-% cd mtex-5.1.1
-% startup_mtex
-% cd ..
-addpath(genpath('Functions'));
-%% Access Reconstruction Algorithm
-% Folder/filename
-% fname = 'EBSD_Data/Timkin1.ctf';
-
-
-
 %MTEX setup stuff
 clear all
 close all
+
+% cd ../mtex-5.1.1
+% startup_mtex
+% cd ../IP_OP_Variation
+
+% parpool(5)
+
 setMTEXpref('xAxisDirection','east');
 setMTEXpref('zAxisDirection','outOfPlane');
 addpath(genpath('../Functions'));
@@ -53,7 +50,7 @@ S9_twin_miso.SS = S9_twin_miso.CS;
 
 
 for ii = 1:length(ang_filenames)
-    ang_filename = [ang_filenames(ii).folder '\' ang_filenames(ii).name];
+    ang_filename = [ang_filenames(ii).folder '/' ang_filenames(ii).name];
     clear Initial_Recon_Dataset;
     Initial_Recon_Dataset.Material = 'Steel';
     Initial_Recon_Dataset.Phase.Name{1} = 'Martensite';
@@ -90,7 +87,7 @@ for ii = 1:length(ang_filenames)
                         IP_name =['_IP',int2str(IP_Weight(a)),'-',int2str(IP_Scale(b))];
                         OP_name = ['_OP',int2str(OP_Weight(c)),'-',int2str(OP_Scale(d))];
                         HW_name = ['_HW',int2str(OP_Weight(c))];
-                        Writeout_name = [ang_filenames(ii).name(1:end-4),HW_name,IP_name,OP_name];
+                        Writeout_name = [ang_filenames(ii).name(1:end-4),HW_name,IP_name,OP_name]
                         clear IP_name OP_name HW_name
                         i = i+1;
                         inputs(i).IP = IP;
@@ -103,7 +100,7 @@ for ii = 1:length(ang_filenames)
         end
         total_tests = i;
         disp(['Total of ' ,int2str(i),' inputs in this parfor loop. Starting now...'])
-        parfor i =1:16%total_tests
+        parfor i =1:total_tests
             par_run(inputs(i),Initial_with_MODF,ang_filename);
         end
         disp('Parfor Loop finished. beginning next one...')

@@ -222,6 +222,8 @@ function RunRecon(varargin)
     [myEBSD,Parent,Twin] = Call_Recon(myEBSD,IP_params,OP_params,iters);
     recon_time = (toc/60)
 
+    
+    
     AusRecon = myEBSD.Recon.Ebsd;
 %     TPts = myEBSD.Recon.TransformedPoints;
 %     Likelihood = zeros(length(AusRecon),1);
