@@ -3,6 +3,7 @@ close all
 
 %Load up data from saved myEBSD file.
 load('EBSD/AF_001_Recon.mat','myEBSD')
+%load('../../EBSD_Data/AF96_example_Recon.mat','myEBSD')
 
 % Grab the data we need from myEBSD: The original EBSD, the Austenite
 % Reconstruction, the CS and SS objects, and the OR
@@ -34,45 +35,45 @@ clear Bounds
 % =========================================================== %
 % EVERYTHING ABOVE HERE IS UNCHANGING. Start below this point
 % =========================================================== %
-
-[grains,Aus.grainId,~] = calcGrains(Aus,'angle',5*degree);
-small_grains = grains(grains.grainSize<6);
-Aus(small_grains) = [];
-[grains,Aus.grainId,~] = calcGrains(Aus,'angle',5*degree);
-
-
-
-grains(grains.grainSize<6) = [];
-%[grains,Aus.grainId,~] = calcGrains(Aus,'angle',5*degree);
-
-
-Small_grains = grains(grains.grainSize<6);
-Large_grains = grains(grains.grainSize>5);
-Small_grains_points = Aus.grainId(Aus.grainId == Small_grains);
-
-
-[grains,Aus.grainId,~] = calcGrains(Aus,'angle',5*degree);
-
-
-% remove two pixel grains
-Aus(grains(grains.grainSize<=6)) = [];
-[grains,ebsd.grainId,ebsd.mis2mean] = calcGrains(ebsd('indexed'),'angle',5*degree);
-
-% smooth them
-grains = grains.smooth(5);
-
-% visualize the grains
-plot(grains,grains.meanOrientation)
-
-% store crystal symmetry of Magnesium
-CS = grains.CS;
-
-
-
-
-
-
-
+% 
+% [grains,Aus.grainId,~] = calcGrains(Aus,'angle',5*degree);
+% small_grains = grains(grains.grainSize<6);
+% Aus(small_grains) = [];
+% [grains,Aus.grainId,~] = calcGrains(Aus,'angle',5*degree);
+% 
+% 
+% 
+% grains(grains.grainSize<6) = [];
+% %[grains,Aus.grainId,~] = calcGrains(Aus,'angle',5*degree);
+% 
+% 
+% Small_grains = grains(grains.grainSize<6);
+% Large_grains = grains(grains.grainSize>5);
+% Small_grains_points = Aus.grainId(Aus.grainId == Small_grains);
+% 
+% 
+% [grains,Aus.grainId,~] = calcGrains(Aus,'angle',5*degree);
+% 
+% 
+% % remove two pixel grains
+% Aus(grains(grains.grainSize<=6)) = [];
+% [grains,ebsd.grainId,ebsd.mis2mean] = calcGrains(ebsd('indexed'),'angle',5*degree);
+% 
+% % smooth them
+% grains = grains.smooth(5);
+% 
+% % visualize the grains
+% plot(grains,grains.meanOrientation)
+% 
+% % store crystal symmetry of Magnesium
+% CS = grains.CS;
+% 
+% 
+% 
+% 
+% 
+% 
+% 
 
 
 
@@ -85,39 +86,168 @@ CS = grains.CS;
 Aus = Aus.fill;
 Mart=Mart.fill;
 
+
 % Get the 24 3x3 rotation matrices from YardleyVarians
 YV = YardleyVariants(OR);
 % these need to be transposed and converted into MTEX rotations
-clear YVar_rot YVar_ori
-
+clear YV_rot YV_ori
 for i =1:24
-    YVar_rot(i) = rotation('matrix',transpose(YV{i}));
+    YV_rot(i) = rotation('matrix',transpose(YV{i}));
 end
-YVar_ori = orientation(YVar_rot,CS_M);
-
+YV_ori = orientation(YV_rot,CS_M);
 % Verify these look right
 figure()
-plotPDF(YVar_ori,Miller(0,0,1,CS_M))
+plotPDF(YV_ori,Miller(0,0,1,CS_M))
+
+figure()
+cmap = myEBSD.Variants.RGB;
+caxis([0,25]);
+colormap(cmap);
+for ii = 1:24
+    plotPDF(YV_ori(ii),Miller(0,0,1,CS_M),'MarkerColor',cmap(ii+1,:)) 
+    hold on
+end
+
+figure()
+cmap = myEBSD.Packets.RGB;
+caxis([0,5]);
+colormap(cmap);
+for ii = 1:24
+    plotPDF(YV_ori(ii),Miller(0,0,1,CS_M),'MarkerColor',cmap(ceil((ii)/6)+1,:)) 
+    hold on
+end
 
 
 
-%%
-Mart_options = Aus.orientations*YVar_rot;
-%Mart_options = Aus.orientations*YVar_rot;
-Ausx24 = repmat(Mart.orientations,1,24);
-miso = angle(Mart_options,Ausx24);
-[~,VarsA]= min(miso,[],2);
-VarsA = flipud(reshape(VarsA,[321,321]));
-VarseA(1,1) = 0;
+%% Setup
+Aus_ori = Aus.orientations;
+Mart_ori = Mart.orientations;
 
+Martx24 = repmat(Mart_ori,1,24); 
+Ausx24 = repmat(Aus_ori,1,24);
 fakeEBSD=myEBSD;
-fakeEBSD.Variants.IDs = VarsA;
-fakeEBSD.Packets.IDs = ceil(VarsA/6);
-Plot_Variants(fakeEBSD)
+
+%% Method 1 - min(angle(Mart, (Aus * rot)))
+choices_1 = Aus_ori * YV_rot;
+miso_1    = angle(choices_1, Martx24);
+[~,Vars_1]= min(miso_1,[],2);
 
 
+Vars = flipud(reshape(Vars_1,[321,321]));
+Vars(1,1) = 0;
+fakeEBSD.Variants.IDs = Vars;
+fakeEBSD.Packets.IDs = ceil(Vars/6);
+Plot_Variants(fakeEBSD,'mbar',0,'cbar',0);
+Plot_Packets(fakeEBSD,'mbar',0,'cbar',0);
+
+%% Method 2 - min(angle(Mart, (Aus * ori)))
+choices_2 = Aus_ori * YV_ori;
+miso_2    = angle(choices_2, Martx24);
+[~,Vars_2]= min(miso_2,[],2);
+
+
+Vars = flipud(reshape(Vars_2,[321,321]));
+Vars(1,1) = 0;
+fakeEBSD.Variants.IDs = Vars;
+fakeEBSD.Packets.IDs = ceil(Vars/6);
+Plot_Variants(fakeEBSD,'mbar',0,'cbar',0);
+Plot_Packets(fakeEBSD,'mbar',0,'cbar',0);
+
+%% Method 3 - min(angle(Aus, (Mart * rot)))
+choices_3 = Mart_ori * YV_rot;
+miso_3    = angle(choices_3, Ausx24);
+[~,Vars_3]= min(miso_3,[],2);
+
+
+Vars = flipud(reshape(Vars_3,[321,321]));
+Vars(1,1) = 0;
+fakeEBSD.Variants.IDs = Vars;
+fakeEBSD.Packets.IDs = ceil(Vars/6);
+Plot_Variants(fakeEBSD,'mbar',0,'cbar',0);
+Plot_Packets(fakeEBSD,'mbar',0,'cbar',0);
+
+%% Method 4 - min(angle(Aus, (ori*Mart)))
+choices_4 = transpose(YV_ori*Mart_ori);
+miso_4    = angle(choices_4, Ausx24);
+[~,Vars_4]= min(miso_4,[],2);
+
+
+Vars = flipud(reshape(Vars_4,[321,321]));
+Vars(1,1) = 0;
+fakeEBSD.Variants.IDs = Vars;
+fakeEBSD.Packets.IDs = ceil(Vars/6);
+Plot_Variants(fakeEBSD,'mbar',0,'cbar',0);
+Plot_Packets(fakeEBSD,'mbar',0,'cbar',0);
+
+%% Method 4 - min(angle(Aus, (ori*Mart)))
+choices_4 = transpose(YV_ori*Mart_ori);
+miso_4    = angle(choices_4, Ausx24);
+[~,Vars_4]= min(miso_4,[],2);
+
+
+Vars = flipud(reshape(Vars_4,[321,321]));
+Vars(1,1) = 0;
+fakeEBSD.Variants.IDs = Vars;
+fakeEBSD.Packets.IDs = ceil(Vars/6);
+Plot_Variants(fakeEBSD,'mbar',0,'cbar',0);
+Plot_Packets(fakeEBSD,'mbar',0,'cbar',0);
+
+%% Methods 9-12: try for loop
+    V_A2M_1 = zeros(size(Aus,1),24);
+    V_A2M_2 = zeros(size(Aus,1),24);
+    V_M2A_1 = zeros(size(Aus,1),24);
+    V_M2A_2 = zeros(size(Aus,1),24);
+
+for i = 1:size(YV_ori,2)
+    A2M_1 = YV_ori(i) * Aus_ori;
+    A2M_2 = Aus_ori * YV_ori(i);
+    M2A_1 = YV_ori(i) * Mart_ori;
+    M2A_2 = Mart_ori * YV_ori(i);
+    
+    V_A2M_1(:,i) = angle(A2M_1,Mart_ori)./degree;   
+    V_A2M_2(:,i) = angle(A2M_2,Mart_ori)./degree;   
+    V_M2A_1(:,i) = angle(M2A_1,Aus_ori)./degree;   
+    V_M2A_2(:,i) = angle(M2A_2,Aus_ori)./degree;   
+end
+%Pick the lowest misorientation choice (again, both ways)
+[~,V_A] = min(V_A2M_1,[],2);
+[~,V_B] = min(V_A2M_2,[],2);
+[~,V_C] = min(V_M2A_1,[],2);
+[~,V_D] = min(V_M2A_2,[],2);
+
+
+Vars = flipud(reshape(V_A,[321,321]));
+fakeEBSD.Variants.IDs = Vars;
+fakeEBSD.Packets.IDs = ceil(Vars/6);
+Plot_Variants(fakeEBSD,'mbar',0,'cbar',0);
+%Plot_Packets(fakeEBSD,'mbar',0,'cbar',0);
+
+
+Vars = flipud(reshape(V_B,[321,321]));
+fakeEBSD.Variants.IDs = Vars;
+fakeEBSD.Packets.IDs = ceil(Vars/6);
+Plot_Variants(fakeEBSD,'mbar',0,'cbar',0);
+%Plot_Packets(fakeEBSD,'mbar',0,'cbar',0);
+
+
+Vars = flipud(reshape(V_C,[321,321]));
+fakeEBSD.Variants.IDs = Vars;
+fakeEBSD.Packets.IDs = ceil(Vars/6);
+Plot_Variants(fakeEBSD,'mbar',0,'cbar',0);
+%Plot_Packets(fakeEBSD,'mbar',0,'cbar',0);
+
+
+Vars = flipud(reshape(V_D,[321,321]));
+fakeEBSD.Variants.IDs = Vars;
+fakeEBSD.Packets.IDs = ceil(Vars/6);
+Plot_Variants(fakeEBSD,'mbar',0,'cbar',0);
+%Plot_Packets(fakeEBSD,'mbar',0,'cbar',0);
 
 %%
+
+%EVERYTHING ABOVE HERE WORKS NOW
+
+
 
 
 

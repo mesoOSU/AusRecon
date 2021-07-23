@@ -2,7 +2,7 @@ function [Bounds,Aus_gb_merged,Aus_parentId] = Map_Sigma_Boundaries(Aus,CS_A,CS_
 %UNTITLED5 Summary of this function goes here
 %   Detailed explanation goes here
 
-[Aus_grains,GrainID] = calcGrains(Aus,'angle',5*degree);
+[Aus_grains,GrainID] = calcGrains(Aus,'angle',0.5*degree);
 Aus_grains = Aus_grains.smooth(5);
 Aus_gb = Aus_grains.boundary('Austenite','Austenite');
 
