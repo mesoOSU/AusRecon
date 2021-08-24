@@ -95,18 +95,29 @@ function [myEBSD] = AutoOR_estimation(myEBSD,vis_m,vis_a,num_Ors,plt_ksi)
 
         %% MAP estimate of parameters by optimization
 
-
-        options=optimoptions('fmincon');
-        options=optimoptions(options,'display','iter','algorithm','sqp');
+        options=optimset('fminsearch');
+        options=optimset(options,'display','iter','algorithm','sqp');
         optimfunc= @(samples) -posterior_pdf_fminunc(samples,prior_pars,martensite);
-        nlcon=@(samples) ksi_constraints(samples);
-
-        %x0=MAPpars;
         x0=[ksi_initial,halfwidth_in/degree];
-
-        %x0=MAPpars;
-        [MAPpars,loglike,exitflag,output]=fmincon(optimfunc,x0,[],[],[],[],[0,5,5,0.25],[10,15,15,5],nlcon,options);
-
+        
+        % Ensure the constraint that ksi_1 < ksi_2 and ksi_3. Since we
+        % don't know for certain if ksi_2 SHOULD be < ksi_3, force this to
+        % occur if the first constraint is met.
+        init_guess=0;
+        count = 0;
+        while init_guess == 0
+            count = count+1;
+        % Optimization function outside of ML add-on
+            [MAPpars,loglike,exitflag,output]=fminsearch(optimfunc,x0,options);
+        
+            if (MAPpars(1) < MAPpars(2) && MAPpars(3)) || count > 2
+                init_guess = 1;
+                % Enforce constraint if need be
+                if(MAPpars(2) > MAPpars(3))
+                    MAPpars(2) = (MAPpars(3)-1e-3);
+                end
+            end
+        end
         ksi_1st_guess=MAPpars(1:3);
         halfwidth_in=MAPpars(4)*degree;
 
