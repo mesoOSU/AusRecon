@@ -96,7 +96,7 @@ function [myEBSD] = AutoOR_estimation(myEBSD,vis_m,vis_a,num_Ors,plt_ksi)
         %% MAP estimate of parameters by optimization
 
         options=optimset('fminsearch');
-        options=optimset(options,'display','iter','algorithm','sqp');
+        options=optimset(options,'display','iter');
         optimfunc= @(samples) -posterior_pdf_fminunc(samples,prior_pars,martensite);
         x0=[ksi_initial,halfwidth_in/degree];
         
