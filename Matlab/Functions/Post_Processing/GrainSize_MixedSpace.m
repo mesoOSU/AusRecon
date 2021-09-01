@@ -213,7 +213,8 @@ function [Grains,Twin,Parent,myEBSD] = GrainSize_MixedSpace(varargin)
     
     StDev = sqrt(1/(Sz-1) * sum((ASTMGrnArea(InternalGrnIds) - freqGS).^2));
     StError = StDev / sqrt(Sz);
-    CI95 = tinv([0.025,0.975],Sz-1);
+    %CI95 = tinv([0.025,0.975],Sz-1); % Requires Stats and ML toolbox
+    CI95 = tstat3(Sz-1, 0.975, 'inv');
     yCi95 = bsxfun(@times, StError, CI95(:));
 
     % Now measure grain sizes using the lineal intercept method
