@@ -96,16 +96,44 @@ prop = Mart_f.prop;
 Aus_f.prop = prop;
 
 % Get the Variant rotations based on OR from Yardley function
-Y_Variants = YardleyVariants(OR);
-% Maybe got Variant transform backwards? try it both ways
-Variant_miso_A2M = zeros(size(Aus_f,1),24);
-Variant_miso_M2A = zeros(size(Aus_f,1),24);
-for i = 1:size(Y_Variants,1)
-    Variant_ori_A2M = transpose(rotation('matrix',Y_Variants{i,1})*Aus_f.orientations);
-    Variant_ori_M2A = transpose(rotation('matrix',Y_Variants{i,1})*Mart_f.orientations);
+%threebythree_Y_Var = YardleyVariants(OR);
+%for i =1:24
+%    y_var[i]=rotation('matrix',threebythree_Y_Var
+%end
+%Y_Variants
 
-    Variant_miso_A2M(:,i) = angle(Variant_ori_A2M,Mart_f.orientations)./degree;   
-    Variant_miso_M2A(:,i) = angle(Variant_ori_M2A,Aus_f.orientations)./degree;   
+
+YV = YardleyVariants(OR);
+
+clear Y_Variants
+for i = 1:24
+    Y_Variants(i) = rotation('matrix',YV{i});
+end
+
+% Maybe got Variant transform backwards? try it both ways
+%Variant_miso_A2M = zeros(size(Aus_f,1),24);
+%Variant_miso_M2A = zeros(size(Aus_f,1),24);
+    V_A2M_1 = zeros(size(Aus_f,1),24);
+    V_A2M_2 = zeros(size(Aus_f,1),24);
+    V_M2A_1 = zeros(size(Aus_f,1),24);
+    V_M2A_2 = zeros(size(Aus_f,1),24);
+
+for i = 1:size(Y_Variants,1)
+%    Variant_ori_A2M = (rotation('matrix',Y_Variants{i,1}).inv)*Aus_f.orientations;
+%    Variant_ori_M2A = (rotation('matrix',Y_Variants{i,1}).inv)*Mart_f.orientations;
+%    Variant_ori_A2M = (Y_Variants{i}.inv)*Aus_f.orientations;
+%    Variant_ori_M2A = (Y_Variants{i}.inv)*Mart_f.orientations;
+%    Variant_miso_A2M(:,i) = angle(Variant_ori_A2M,Mart_f.orientations)./degree;   
+%    Variant_miso_M2A(:,i) = angle(Variant_ori_M2A,Aus_f.orientations)./degree;   
+    A2M_1 = (Y_Variants(i).inv)*Aus_f.orientations;
+    A2M_2 = (Y_Variants(i))*Aus_f.orientations;
+    M2A_1 = (Y_Variants(i).inv)*Mart_f.orientations;
+    M2A_2 = (Y_Variants(i))*Mart_f.orientations;
+    
+    V_A2M_1(:,i) = angle(A2M_1,Mart_f.orientations)./degree;   
+    V_A2M_2(:,i) = angle(A2M_2,Mart_f.orientations)./degree;   
+    V_M2A_1(:,i) = angle(M2A_1,Aus_f.orientations)./degree;   
+    V_M2A_2(:,i) = angle(M2A_2,Aus_f.orientations)./degree;   
 end
 
 %Pick the lowest misorientation choice (again, both ways)
@@ -133,6 +161,7 @@ hold on
 var_plot = pcolor(X,Y,sq_var_A2M);
 var_plot.EdgeColor = 'none';
 plot(Aus_gb_merged.boundary,'linecolor','k','linewidth',2)
+mtexColorbar
 hold off
 
 % Figure 10 and 11 SHOULD be the variants grouped by Packets, but neither
@@ -146,6 +175,7 @@ hold on
 var_plot = pcolor(X,Y,floor(sq_var_A2M/6)*6);
 var_plot.EdgeColor = 'none';
 plot(Aus_gb_merged.boundary,'linecolor','k','linewidth',2)
+mtexColorbar
 hold off
 
 figure(11)
@@ -155,6 +185,7 @@ hold on
 var_plot = pcolor(X,Y,floor(sq_var_M2A/6)*6);
 var_plot.EdgeColor = 'none';
 plot(Aus_gb_merged.boundary,'linecolor','k','linewidth',2)
+mtexColorbar
 hold off
 
 %ERIC: here is where i started coloring things. Ignore the Container.Maps,
@@ -212,6 +243,7 @@ var_plot = pcolor(X,Y,blk);
 var_plot.EdgeColor = 'none';
 colormap(BRGB)
 plot(Aus_gb_merged.boundary,'linecolor','k','linewidth',2)
+mtexColorbar
 hold off
 
 figure(13)
@@ -221,16 +253,32 @@ var_plot = pcolor(X,Y,pkt);
 var_plot.EdgeColor = 'none';
 colormap(PRGB)
 plot(Aus_gb_merged.boundary,'linecolor','k','linewidth',2)
+mtexColorbar
 hold off
 
 figure(14)
 plot(Aus_gb_merged.boundary,'linecolor','k','linewidth',2)
 hold on
-var_plot = pcolor(X,Y,sq_var_A2M+1);
+var_plot = pcolor(X,Y,sq_var_A2M);
 var_plot.EdgeColor = 'none';
 colormap(VRGB)
 plot(Aus_gb_merged.boundary,'linecolor','k','linewidth',2)
+mtexColorbar
 hold off
+
+
+
+
+sq_var_A2M(sq_var_A2M>6)=0;
+figure(14)
+plot(Aus_gb_merged.boundary,'linecolor','k','linewidth',2)
+hold on
+var_plot = pcolor(X,Y,sq_var_M2A);
+var_plot.EdgeColor = 'none';
+plot(Aus_gb_merged.boundary,'linecolor','k','linewidth',2)
+mtexColorbar
+hold off
+
 
 % % Compute variants and corresponding groupoid from euler angles
 % ksi=myEBSD.OR

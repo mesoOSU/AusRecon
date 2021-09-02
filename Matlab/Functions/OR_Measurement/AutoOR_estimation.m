@@ -1,5 +1,5 @@
 function [myEBSD] = AutoOR_estimation(myEBSD,vis_m,vis_a,num_Ors,plt_ksi)
-    
+    tic;
     % Array to save data in 
     CS_T = myEBSD.CS{2};
     CS_R = myEBSD.CS{3};

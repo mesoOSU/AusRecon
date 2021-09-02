@@ -15,6 +15,7 @@ Matlab/IP_OP_Variation/EBSD/*
 !Matlab/IP_OP_Variation/EBSD/AF_001/*
 *.mat
 *.asv
+*.zip
 #=======================================#
 #Copy/Pasted generic Pythonic gitignore
 #=======================================#
@@ -147,3 +148,4 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+Matlab/time_it.m
