@@ -99,7 +99,11 @@ function [myEBSD] = AutoOR_estimation(myEBSD,vis_m,vis_a,num_Ors,plt_ksi)
         options=optimset(options,'display','iter');
         optimfunc= @(samples) -posterior_pdf_fminunc(samples,prior_pars,martensite);
         x0=[ksi_initial,halfwidth_in/degree];
+<<<<<<< HEAD
        
+=======
+        
+>>>>>>> 745eedb1fc7c90610d170b201b8a4e74aa9075f8
         % Ensure the constraint that ksi_1 < ksi_2 and ksi_3. Since we
         % don't know for certain if ksi_2 SHOULD be < ksi_3, force this to
         % occur if the first constraint is met.
@@ -109,7 +113,11 @@ function [myEBSD] = AutoOR_estimation(myEBSD,vis_m,vis_a,num_Ors,plt_ksi)
             count = count+1;
         % Optimization function outside of ML add-on
             [MAPpars,loglike,exitflag,output]=fminsearch(optimfunc,x0,options);
+<<<<<<< HEAD
        
+=======
+        
+>>>>>>> 745eedb1fc7c90610d170b201b8a4e74aa9075f8
             if (MAPpars(1) < MAPpars(2) && MAPpars(3)) || count > 2
                 init_guess = 1;
                 % Enforce constraint if need be
