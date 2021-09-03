@@ -322,9 +322,13 @@ function [varargout] = BoundaryIntersect(varargin)
         end
         
         % CI Functions
-        CI95li = tinv([0.025,0.975],Sz-1);
-        CI95ASTM = tinv([0.025,0.975],Sz-1);
-        CI95Sv = tinv([0.025,0.975],Sz-1);
+        % TODO: These are all identical. Why do we need all three?
+        %CI95li = tinv([0.025,0.975],Sz-1); % Requires Stats and ML toolbox
+        CI95li = tstat3(max(Sz-1,1), 0.975, 'inv');
+        % CI95ASTM = tinv([0.025,0.975],Sz-1); % Requires Stats and ML toolbox
+        CI95ASTM = tstat3(max(Sz-1,1), 0.975, 'inv');
+        % CI95Sv = tinv([0.025,0.975],Sz-1); % Requires Stats and ML toolbox
+        CI95Sv = tstat3(max(Sz-1,1), 0.975, 'inv');
         
         % Lineal Intercept Data
         E112_13.li.Mu = TotLine / sum(NSegs);

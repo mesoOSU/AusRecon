@@ -10,19 +10,34 @@
 % Jump into mtex folder (alter as needed based on version) and start it up
 % NOTE: THIS IS NOT IN THE REPO BY DEFAULT. If you need MTEX, download the 
 % it from the mtex website: https://mtex-toolbox.github.io/download
-% cd mtex-5.1.1
-% startup_mtex
-% cd ..
+cd ..
+cd ..
+cd mtex-5.1.1
+startup_mtex
+cd ..
+cd AusRecon
+cd Matlab
 addpath(genpath('Functions'));
 %% Access Reconstruction Algorithm
 % Folder/filename
 % fname = 'EBSD_Data/Timkin1.ctf';
 
-fname = '../EBSD_Data/AF96_example.ang';
+%fname = 'C:\Users\paytonej\Desktop\AusRecon-main\AusRecon-main\EBSD_Data\AF96_example.ang'
 
+fnames = {'C:\Users\paytonej\Desktop\EBSD Data-20210707T175853Z-001\EBSD Data\Ultrafort 6355\Fine (860 deg C, 4 cycles)\S500_A3_RA2-Scan2\S500_A3_RA2-Scan2.ang',...
+'C:\Users\paytonej\Desktop\EBSD Data-20210707T175853Z-001\EBSD Data\Wrought AF9628\Fine (850 deg C, 4 Cycles)\2B-RA5\2B-RA5.ang',...
+'C:\Users\paytonej\Desktop\EBSD Data-20210707T175853Z-001\EBSD Data\P675 Steel\Fine Microstructure\P675_P-RA1-UL\P675_P-RA1-UL.ang',...
+'..\EBSD_Data\AF96_example.ang'};
+
+fnames = {'..\EBSD_Data\AF96_example.ang'}
+
+for fname_iter = 1:length(fnames)
+    close all;
+    %clear('myEBSD')
+    fname = fnames{fname_iter};
 % Possibilities after a single run
 % OR = myEBSD.OR; % You can type this myEBSD.OR into the workspace and then
-OR = [3.09,8.10,8.48];      % AF96 Sample [0.915447390857388,9.245004817251438,9.258634331312445]
+% OR = [3.09,8.10,8.48];      % AF96 Sample [0.915447390857388,9.245004817251438,9.258634331312445]
 % use OR = [...] (whatever the values are) 
 % intparams = [...] % Whatever you want them to be
 % myEBSD is the structure that returns everything. If you add myEBSD to the
@@ -142,3 +157,11 @@ PltBlockPDFs(myEBSD,myEBSD.AusGrnPackets,grnId,Dir)
 PltPairedVars(myEBSD,mbar)
 hold on
 plot(myEBSD.AusGrains.grains.boundary,'FaceColor','white')
+
+tmp1 = split(fname, filesep);
+tmp2 = join(tmp1(1:end-1), filesep);
+tmp3 = split(tmp1(end), '.');
+outputfilename = strcat(tmp2{1}, filesep, tmp3{1}, '.mat');
+save(outputfilename)
+
+end % loop over files
