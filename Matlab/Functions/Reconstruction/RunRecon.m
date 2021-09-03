@@ -222,25 +222,6 @@ function RunRecon(varargin)
     [myEBSD,Parent,Twin] = Call_Recon(myEBSD,IP_params,OP_params,iters);
     recon_time = (toc/60)
 
-    
-    
-    AusRecon = myEBSD.Recon.Ebsd;
-%     TPts = myEBSD.Recon.TransformedPoints;
-%     Likelihood = zeros(length(AusRecon),1);
-    Likelihood = myEBSD.Recon.Likelihood;
-%     myEBSD.Recon.Likelihood = Likelihood;
-
-    %%% assignin('base','AusRecon_Ebsd',AusRecon)
-    %%% assignin('base','AusRecon_Likelihood',Likelihood)
-    %%% assignin('base','myEBSD',myEBSD)
-    %%% assignin('base','ParentGrains',Parent)
-    %%% assignin('base','TwinGrains',Twin)
-
-    % figure; plot(Recon_Ebsd('a'),Recon_Ebsd('a').orientations)
-    % hold on
-    % plot(Recon_Ebsd('m'),Recon_Ebsd('m').orientations)
-    % figure; plot(Recon_Ebsd,Likelihood,'MicronBar','off')
-
     %% 5.) Twin and Parent Grain Identification
 
     if strcmp(myEBSD.rec_space,'Mixed')
@@ -253,7 +234,7 @@ function RunRecon(varargin)
     %     information and ID of each specific entity (or pairing)
         [myEBSD,Parent,Twin] = TwinParentID(myEBSD,ang_tol);
     end
-    %%
+    
     % 6.) Compute Pre-Transformation Grain Size and Plot Distribution
 
     % Ignore Twin boundaries by setting to 1 
@@ -270,7 +251,7 @@ function RunRecon(varargin)
     % Save the 'Grain' structure to the EBSD workspace for the user
     %%% assignin('base','AusGrains',Grains)
 
-    %% 8.) Martensite Packet Boundary Characterization
+    % 8.) Martensite Packet Boundary Characterization
 
     % Preallocate the necessary variables
     Packets         = [];
@@ -283,12 +264,33 @@ function RunRecon(varargin)
     
     % Loop through each PAG and assign a packet, block, and variant ID to
     % each pixel within the PAG
-    for k = 1:length(Grains.grainId)
-        disp(['now working on Grain ' int2str(k) ' of ' int2str(length(Grains.grainId))])
-        try
+    
+S_Aus = myEBSD.Recon.Ebsd(myEBSD.Recon.Ebsd.phase ==myEBSD.Phase.ID{2});
+%S_Aus = S_Aus(myEBSD.Phase.ID{1});
+[S_Grains,S_Aus.grainId] = calcGrains(S_Aus,'angle',5*degree);
+[S_Aus,S_Grains,~] = RemSmGrns(S_Aus,S_Grains,100);
+num_grains = size(S_Grains,1);
+
+grainId = zeros(num_grains,7) -1;
+grainId(:,1) = [1:num_grains];
+grainId(:,7) = [1:num_grains]*0;
+
+S_Indices = cell(num_grains,1);
+for j = 1:num_grains
+    S_Indices{j} = S_Aus.id(S_Aus.grainId==j);
+end
+
+Phony_Grains = [];
+Phony_Grains.grains = S_Grains;
+Phony_Grains.Indices=S_Indices;
+Phony_Grains.grainId=grainId;
+ %%   
+    for k = 12:length(Grains.grainId)
+        disp(['now working on Grain ' int2str(k) ' of ' int2str(length(Phony_Grains.grainId))])
+%        try
             % Now determine packets for the characterized austenite grains (ignores
             % the unassigned martensite)
-            [Packets] = PacketChar(myEBSD,Grains,k,Packets,Twin);    
+            [Packets] = PacketChar(myEBSD,Phony_Grains,k,Packets);    
             % The actual austenite id number
             AusId = Packets{k}.AusGrain.id;
             % For each pixel in the EBSD microstructure, fill with the
@@ -299,10 +301,10 @@ function RunRecon(varargin)
             BlockReconWts(AusId)   = Packets{k}.Block.Weights;
             VariantRecon(AusId)    = Packets{k}.Variants.List;
             VariantReconWts(AusId) = Packets{k}.Variants.Weights;
-        catch
-            disp(['Error: on grain ' int2str(k) ' The code failed to properly segment the']) 
-            disp('packets. This is likely due to a twinning effect.')
-        end
+%        catch
+%            disp(['Error: on grain ' int2str(k) ' The code failed to properly segment the']) 
+%            disp('packets. This is likely due to a twinning effect.')
+%        end
     end
     
     
@@ -361,8 +363,6 @@ function RunRecon(varargin)
     %%
     % Now write pertinent data to the text file
     % genTxt(myEBSD,Twin,Grains,filename)
-    myEBSD.AusRecon_Ebsd = AusRecon;
-    myEBSD.AusRecon_Likelihood = Likelihood;
     myEBSD.TwinGrains = Twin;
     myEBSD.ParentGrains = Parent;
     myEBSD.AusGrains = Grains;
@@ -373,6 +373,7 @@ function RunRecon(varargin)
     
     [path,name,~] = fileparts(filename);
     mat_name = [path '/'  name '_Recon.mat'];
+    mat_name = strjoin(mat_name, '');
     save(mat_name, 'myEBSD', '-v7.3')
     clear path name
 

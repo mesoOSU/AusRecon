@@ -5,7 +5,7 @@ cd ../IP_OP_Variation
 ls
 name = input.Writeout_name;
 save_name = [fileparts(ang_filename) '/R' name];
-getappdata(0,'mtex')
+%getappdata(0,'mtex')
 if  ~isempty(dir([save_name '.mat']))
     disp([save_name '.mat already exists, skipping...'])
 else

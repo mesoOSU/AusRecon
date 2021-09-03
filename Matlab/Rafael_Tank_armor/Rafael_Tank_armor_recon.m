@@ -15,7 +15,7 @@ ang_filenames = dir('Data/test.ang');
 % If you had a bunch of files, you could do a "for" loop here, but there is 
 % just one, so inseadI set ii = 1 and move on
 ii = 1;
-ang_filename = [ang_filenames(ii).folder '/' ang_filenames(ii).name]
+ang_filename = [ang_filenames(ii).folder '\' ang_filenames(ii).name]
 %When AusRecon gets refactored, all this setup will be automated, but for
 %now need to set some variables the hard way.
 clear tank_EBSD
@@ -28,6 +28,14 @@ tank_EBSD.rec_space = 'Mixed';
 [tank_EBSD] = import_EBSD_Alex(ang_filename,tank_EBSD);
 CS_A = tank_EBSD.origEbsd('Austenite').CS;
 CS_M = tank_EBSD.origEbsd('Martensite').CS;
+
+%Cleanup the sample, remove grains 6 pixels in size or smaller
+Mart = tank_EBSD.Ebsd;
+[grains,Mart.grainId] = calcGrains(Mart,'angle',5*degree);
+Mart(grains(grains.grainSize<=5))= [];
+[grains,Mart.grainId] = calcGrains(Mart,'angle',5*degree);
+tank_EBSD.Ebsd = Mart;
+tank_EBSD.origEbsd = Mart;
 %Instead of KS or NW, this code determines the correct Aus/Mart Orientation
 %relationship (OR)using a method developed by Vitoria Yardley and coded up by
 %Eric payton. A bit confusing but much more accurate. check the function below
@@ -49,10 +57,10 @@ tank_EBSD.OR  = [0.6201,    4.9984,    4.9981];
 
 
 % 225 tests per file
-IP_Weight = [20,30,40,50,60];        %4
-IP_Scale =  [40,50,60,70,80];        %6
-OP_Weight = [10,20,30];        %2
-OP_Scale  = [100,200,300];     %0.175
+IP_Weight = [40,30,50];     %4
+IP_Scale =  [60,70,50];     %6
+OP_Weight = [20,10,30];     %2
+OP_Scale  = [200];          %0.175
 MODF_Kernel_noise_halfwidth = [17];
 
 % do a bunch of nested for loops to make structs of input
@@ -66,6 +74,12 @@ for e = 1:length(MODF_Kernel_noise_halfwidth)
     [Initial_with_MODF] = DataQuadrants(Initial_with_MODF);
     [Initial_with_MODF] = initialize_recon(Initial_with_MODF);
     
+    % Do the small grain cleanup here. 6 was not enough last time, try more
+    Mart = tank_EBSD.Ebsd;
+    [grains,Mart.grainId] = calcGrains(Mart,'angle',5*degree);
+    Mart(grains(grains.grainSize<=25))= [];
+    [grains,Mart.grainId] = calcGrains(Mart,'angle',5*degree);
+    tank_EBSD.Ebsd = Mart;
     %This is the last point where we modify data. everything else is
     %parameter modification, so this is where we create an input list
     %for looping over

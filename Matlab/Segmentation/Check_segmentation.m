@@ -35,7 +35,10 @@ clear Bounds
 % =========================================================== %
 % EVERYTHING ABOVE HERE IS UNCHANGING. Start below this point
 % =========================================================== %
-% 
+%  Commented out. This was Steve and I working on how to segment the myEBSD
+%  outside of the grain size calculator, so I could feed in grains one by
+%  one. Doesnt work but don't delete (yet)
+%
 % [grains,Aus.grainId,~] = calcGrains(Aus,'angle',5*degree);
 % small_grains = grains(grains.grainSize<6);
 % Aus(small_grains) = [];
@@ -68,14 +71,6 @@ clear Bounds
 % % store crystal symmetry of Magnesium
 % CS = grains.CS;
 % 
-% 
-% 
-% 
-% 
-% 
-% 
-
-
 
 
 
@@ -99,6 +94,7 @@ YV_ori = orientation(YV_rot,CS_M);
 figure()
 plotPDF(YV_ori,Miller(0,0,1,CS_M))
 
+% code to plot variant locations
 figure()
 cmap = myEBSD.Variants.RGB;
 caxis([0,25]);
@@ -135,10 +131,68 @@ miso_1    = angle(choices_1, Martx24);
 
 Vars = flipud(reshape(Vars_1,[321,321]));
 Vars(1,1) = 0;
+Vars = reshape(Vars,[321*321,1]);
 fakeEBSD.Variants.IDs = Vars;
 fakeEBSD.Packets.IDs = ceil(Vars/6);
 Plot_Variants(fakeEBSD,'mbar',0,'cbar',0);
 Plot_Packets(fakeEBSD,'mbar',0,'cbar',0);
+
+
+%Assume for a second that we are right, Method 1 is correct, and the
+%problem is distortion in the map. If so, we should be able to section out
+%a single grain, rotate all the Mart by the Aus grain ori, and plot a PF.
+[grains,GID] = calcGrains(Aus);
+
+%Plot one grain, cause Eric asked to. make mask of biggest grain first
+
+
+[n,bin] = hist(GID,unique(GID));
+[~,idx] = sort(-n);
+sorted_bin = bin(idx);
+big_Grains = sorted_bin(1:3);
+
+close all
+for i = 1:length(big_Grains)
+    G_mask = GID == big_Grains(i);
+    G_Mart = Mart(G_mask);
+    G_Aus = Aus(G_mask);
+    G_Aus_ori = G_Aus(500).orientations;
+    G_mori = inv(G_Aus_ori)*G_Mart.orientations;
+    %G_mori = inv(G_Mart.orientations)*G_Aus_ori;
+    G_Vars = Vars(G_mask);
+    
+    figure()
+    plot(G_Mart,G_Mart.orientations)
+%    figure()
+%    plot(G_Aus,G_Aus.orientations)
+    
+    figure()
+    cmap = myEBSD.Variants.RGB;
+    caxis([0,25]);
+    colormap(cmap);
+    for ii = 1:24
+        plotPDF(YV_ori(ii),Miller(0,0,1,CS_M),'MarkerColor',cmap(ii+1,:),'MarkerSize',8)
+        hold on
+    end
+    A_R = rotation(inv(G_Aus_ori));
+    plotPDF(A_R*G_Mart.orientations,Miller(0,0,1,CS_M),'MarkerColor','k')
+%    for ii = 1:24
+%        plotPDF(G_mori(G_Vars == ii),Miller(0,0,1,CS_M),'MarkerColor',cmap(ii+1,:),'MarkerSize',1,'antipodal')
+%        hold on
+%    end
+end
+
+
+% plotPDF(A_R*G_Mart.orientations,Miller(0,0,1,CS_M),'MarkerColor','k')
+
+% A_R = rotation(inv(G_Aus_ori))
+% plotPDF(mori,Miller(0,0,1,CS_M),'MarkerColor','k','MarkerSize',3)
+
+
+
+figure()
+plot(Mart(GID==634),Mart.orientations(GID==634))
+
 
 %% Method 2 - min(angle(Mart, (Aus * ori)))
 choices_2 = Aus_ori * YV_ori;
@@ -243,96 +297,8 @@ fakeEBSD.Packets.IDs = ceil(Vars/6);
 Plot_Variants(fakeEBSD,'mbar',0,'cbar',0);
 %Plot_Packets(fakeEBSD,'mbar',0,'cbar',0);
 
-%%
-
-%EVERYTHING ABOVE HERE WORKS NOW
-
-
-
-
-
-
-
-Mart_options = Mart.orientations*YVar_ori;
-Ausx24 = repmat(Aus.orientations,1,24);
-miso = angle(Mart_options,Ausx24);
-[~,VarsA]= min(miso,[],2);
-VarsA = flipud(reshape(VarsA,[321,321]));
-
-fakeEBSD=myEBSD;
-fakeEBSD.Variants.IDs = VarsA;
-Plot_Variants(fakeEBSD)
-
-
-
-
-
-% Make array of MartxYV, and Aus repeated, then find angles
-%Possible_Marts = transpose(YVar_ori*Mart.orientations);
-Possible_Marts = Mart.orientations*YVar_ori;
-Ausx24 = repmat(Aus.orientations,1,24);
-miso = angle(Possible_Marts,Ausx24);
-[~,VarsB]= min(miso,[],2);
-VarsB(1) = 0;
-VarsB = reshape(VarsB,[321,321]);
-
-% Make array of MartxYV, and Aus repeated, then find angles
-%Possible_Austs = transpose(YVar_ori*Aus.orientations);
-Possible_Austs = transpose(Aus.orientations*YVar_ori);
-Martx24 = repmat(Mart.orientations,1,24);
-miso = angle(Possible_Austs,Martx24);
-[~,VarsC]= min(miso,[],2);
-VarsC = reshape(VarsC,[321,321]);
-
-
-%compare to correct answer
-figure(100)
-image(reshape(Alex_Var,[321,321]),'CDataMapping','scaled')
-figure()
-image(VarsA,'CDataMapping','scaled')
-figure()
-image(VarsB,'CDataMapping','scaled')
-figure()
-image(VarsC,'CDataMapping','scaled')
-
-% Maybe got Variant transform backwards? try it both ways
-%Variant_miso_A2M = zeros(size(Aus_f,1),24);
-%Variant_miso_M2A = zeros(size(Aus_f,1),24);
-    V_A2M_1 = zeros(size(Aus_f,1),24);
-    V_A2M_2 = zeros(size(Aus_f,1),24);
-    V_M2A_1 = zeros(size(Aus_f,1),24);
-    V_M2A_2 = zeros(size(Aus_f,1),24);
-
-for i = 1:size(Y_Variants,1)
-%    Variant_ori_A2M = (rotation('matrix',Y_Variants{i,1}).inv)*Aus_f.orientations;
-%    Variant_ori_M2A = (rotation('matrix',Y_Variants{i,1}).inv)*Mart_f.orientations;
-%    Variant_ori_A2M = (Y_Variants{i}.inv)*Aus_f.orientations;
-%    Variant_ori_M2A = (Y_Variants{i}.inv)*Mart_f.orientations;
-%    Variant_miso_A2M(:,i) = angle(Variant_ori_A2M,Mart_f.orientations)./degree;   
-%    Variant_miso_M2A(:,i) = angle(Variant_ori_M2A,Aus_f.orientations)./degree;   
-    A2M_1 = (Y_Variants(i).inv)*Aus_f.orientations;
-    A2M_2 = (Y_Variants(i))*Aus_f.orientations;
-    M2A_1 = (Y_Variants(i).inv)*Mart_f.orientations;
-    M2A_2 = (Y_Variants(i))*Mart_f.orientations;
-    
-    V_A2M_1(:,i) = angle(A2M_1,Mart_f.orientations)./degree;   
-    V_A2M_2(:,i) = angle(A2M_2,Mart_f.orientations)./degree;   
-    V_M2A_1(:,i) = angle(M2A_1,Aus_f.orientations)./degree;   
-    V_M2A_2(:,i) = angle(M2A_2,Aus_f.orientations)./degree;   
-end
-
-%Pick the lowest misorientation choice (again, both ways)
-[~,Variants_A2M] = min(Variant_miso_A2M,[],2);
-[~,Variants_M2A] = min(Variant_miso_M2A,[],2);
-x_size = size(unique(Aus_f.prop.x),1);
-y_size = size(unique(Aus_f.prop.y),1);
-sq_var_A2M = reshape(Variants_A2M,x_size,y_size);
-sq_var_M2A = reshape(Variants_M2A,x_size,y_size);
- 
-X = [0:0.5:160];
-Y = [0:0.5:160];
-%EVERYTHING ABOVE HERE WORKS NOW
-
+%% This next block was something I worked on with eric at one point.
+%% Currently obsolete but not (yet) deletable)
 %   ===================================================================  %
 % % ERIC: Start looking here.
 % Figure 9 is an example of just the packet segmentation, no coloration.
@@ -373,10 +339,7 @@ plot(Aus_gb_merged.boundary,'linecolor','k','linewidth',2)
 mtexColorbar
 hold off
 
-%ERIC: here is where i started coloring things. Ignore the Container.Maps,
-%I dont use them anymore, but i'm leaving them there in case i revert back
-%for some reason
-
+%% RGB objects. am now stealing them from myEBSD, come back and fix later
 %Austin note to future Austin: brackets mean cell. semi-colons mean column
 % start of thing that should be function
 Packet_RGB  = {
@@ -419,86 +382,20 @@ VRGB = cell2mat(Variant_RGB);
 blk = (floor((sq_var_A2M-1)/2)+1)*2;
 pkt = (floor((sq_var_A2M-1)/6)+1)*6;
 
-%ERIC: Plots below should be maps colored by variant, block, and packet,
-%but again, they are wrong. Not sure why anymore.
-figure(12)
-plot(Aus_gb_merged.boundary,'linecolor','k','linewidth',2)
-hold on
-var_plot = pcolor(X,Y,blk);
-var_plot.EdgeColor = 'none';
-colormap(BRGB)
-plot(Aus_gb_merged.boundary,'linecolor','k','linewidth',2)
-mtexColorbar
-hold off
-
-figure(13)
-plot(Aus_gb_merged.boundary,'linecolor','k','linewidth',2)
-hold on
-var_plot = pcolor(X,Y,pkt);
-var_plot.EdgeColor = 'none';
-colormap(PRGB)
-plot(Aus_gb_merged.boundary,'linecolor','k','linewidth',2)
-mtexColorbar
-hold off
-
-figure(14)
-plot(Aus_gb_merged.boundary,'linecolor','k','linewidth',2)
-hold on
-var_plot = pcolor(X,Y,sq_var_A2M);
-var_plot.EdgeColor = 'none';
-colormap(VRGB)
-plot(Aus_gb_merged.boundary,'linecolor','k','linewidth',2)
-mtexColorbar
-hold off
-
-
-
-
-sq_var_A2M(sq_var_A2M>6)=0;
-figure(14)
-plot(Aus_gb_merged.boundary,'linecolor','k','linewidth',2)
-hold on
-var_plot = pcolor(X,Y,sq_var_M2A);
-var_plot.EdgeColor = 'none';
-plot(Aus_gb_merged.boundary,'linecolor','k','linewidth',2)
-mtexColorbar
-hold off
-
-
-% % Compute variants and corresponding groupoid from euler angles
-% ksi=myEBSD.OR
-% [Vtmp,~] = YardleyVariants(ksi);
-% [Gtmp,~] = GroupoidVariantsCubic(Vtmp);
-
-% Now concatenate the variant and groupoid (misorientation)
-% vectors to account for the existance of any twins
-%V = vertcat(V,Vtmp);
-%G = vertcat(G,Gtmp);
+%% Link to paper Eric sent me about how to get S3 and S9 angles
 
 % % Eric Payton (CIV)9:34 AM
 % % Otto & Payton J Mater Sci 2011
-% % Eric Payton (CIV)9:39 AM
 % % DOI:10.1107/S0108767384000246
-% % Eric Payton (CIV)9:44 AM
 % % 38.94 degrees @<110>
-% % Eric Payton (CIV)9:47 AM
 % % ori = orientation.byEuler(30*degree,50*degree,10*degree,cs)
 % % (26.56,83.62,26.56)
 
 
 
-% determine parent grain ori with twins merged in
-% This requires fixing, leave be for now
-%L = length(Aus_gb_merged.id);
-%merged_ori = orientation('Euler',ones(L,1),ones(L,1),ones(L,1),CS_A,CS_A);
-%for i = 1:size(Aus_gb_merged,1)
-%    [~,index] = max(Aus_grains(Aus_parentId== i).grainSize);
-%    merged_ori(i) = Aus_grains(Aus_parentId== i).meanOrientation(index); 
-%end
-%mergedGrains.meanOrientation = merged_ori;
-%clear i index merged_ori
-%figure(8)
-%plot(mergedGrains,mergedGrains.meanOrientation)
+%% Broken Steve function to symmeterize from first Yardley instead of using
+%all 24 (not sure why? maybe ask steve why he did it this way? might just
+%be to prove it works and make me think about why?)
 
 % %%Austin Note: I am pretty positive this works and does simplify things
 % %% a bit, but I am ignoring for now to avoid symmeterizing stuff
@@ -515,9 +412,6 @@ hold off
 % %A2M=orientation(‘matrix’,(OR{1}’),CS_M,CS_A);
 % M2A=orientation(‘matrix’,OR{1},CS_A,CS_M);
 % end
-% 
-% %%
-% 
 % 
 %Not relevant, but helpful reminder of how to do inline function def
 %Normalize_block = @(x) x./255

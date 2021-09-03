@@ -51,7 +51,7 @@ plotEBSD(myEBSD.Ebsd,myEBSD)
 % outline the determined PAG boundaries in black.
 % figure; plot(AusRecon_Ebsd,AusRecon_Ebsd.orientations,'MicronBar','off')
 mbar = 1;
-plotEBSD(myEBSD.AusRecon_Ebsd,myEBSD,mbar)
+plotEBSD(myEBSD.Recon.Ebsd,myEBSD,mbar)
 hold on
 plot(myEBSD.AusGrains.grains.boundary)
 
@@ -59,7 +59,7 @@ plot(myEBSD.AusGrains.grains.boundary)
 
 % Plot likelihood plot of chosen austenite orientations transforming the
 % observed martensitic microstructure
-figure; plot(myEBSD.AusRecon_Ebsd,myEBSD.AusRecon_Likelihood,'MicronBar','off')
+figure; plot(myEBSD.Recon.Ebsd,myEBSD.Recon.Likelihood,'MicronBar','off')
 
 %% Plot Grain Structure With Labels
 

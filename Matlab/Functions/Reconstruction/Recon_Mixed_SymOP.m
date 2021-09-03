@@ -540,7 +540,8 @@ for ii = 1:nQds
         TotCount = TotCount+1;
         
         % Display iterations to show progress of code
-        display(sprintf('---------------Iteration #: %d---------------', TotCount))
+        percent_complete = 100*(length(PhaseIDs)-length(PostTransID))/length(PhaseIDs);
+        display(sprintf(' ------ Iter: %d Pcnt: %0.2f Remainder:%0.0f ------ ', TotCount,percent_complete,length(PostTransID)))
         
         % Determine whether to continue on or end the current run
         if length(PostTransID) < 25
