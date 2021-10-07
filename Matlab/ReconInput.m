@@ -10,13 +10,10 @@
 % Jump into mtex folder (alter as needed based on version) and start it up
 % NOTE: THIS IS NOT IN THE REPO BY DEFAULT. If you need MTEX, download the 
 % it from the mtex website: https://mtex-toolbox.github.io/download
-cd ..
-cd ..
+
 cd mtex-5.1.1
 startup_mtex
 cd ..
-cd AusRecon
-cd Matlab
 addpath(genpath('Functions'));
 %% Access Reconstruction Algorithm
 % Folder/filename
@@ -37,7 +34,7 @@ for fname_iter = 1:length(fnames)
     fname = fnames{fname_iter};
 % Possibilities after a single run
 % OR = myEBSD.OR; % You can type this myEBSD.OR into the workspace and then
-% OR = [3.09,8.10,8.48];      % AF96 Sample [0.915447390857388,9.245004817251438,9.258634331312445]
+OR = [3.09,8.10,8.48];      % AF96 Sample [0.915447390857388,9.245004817251438,9.258634331312445]
 % use OR = [...] (whatever the values are) 
 % intparams = [...] % Whatever you want them to be
 % myEBSD is the structure that returns everything. If you add myEBSD to the
@@ -46,7 +43,7 @@ for fname_iter = 1:length(fnames)
 
 % When you are optimizing the results, run:
 
-RunRecon(fname)
+RunRecon(fname,OR)
 % RunRecon(fname)
 % You can still add OR, and/or intparams; myEBSD to the RunRecon1 function 
 % input as well! This will perform reconstruction on a truncated portion of

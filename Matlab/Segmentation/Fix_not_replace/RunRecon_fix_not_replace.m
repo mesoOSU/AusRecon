@@ -161,35 +161,35 @@ BlockRecon      = zeros(length(myEBSD.Ebsd),1);
 VariantRecon    = zeros(length(myEBSD.Ebsd),1);
 VariantReconWts = zeros(length(myEBSD.Ebsd),1);
 
-% Loop through each PAG and assign a packet, block, and variant ID to
-% each pixel within the PAG
 
-S_Aus = myEBSD.Recon.Ebsd(myEBSD.Recon.Ebsd.phase ==myEBSD.Phase.ID{2});
-%S_Aus = S_Aus(myEBSD.Phase.ID{1});
-[S_Grains,S_Aus.grainId] = calcGrains(S_Aus,'angle',5*degree);
-[S_Aus,S_Grains,~] = RemSmGrns(S_Aus,S_Grains,20);
-num_grains = size(S_Grains,1);
 
-grainId = zeros(num_grains,7) -1;
-grainId(:,1) = [1:num_grains];
-grainId(:,7) = [1:num_grains]*0;
+%% Austin's fantastical Magical Segmentation Fun
+% Step 0: Erase evidence of last attempt
+Packets         = [];
+PackRecon       = zeros(length(myEBSD.Ebsd),1);
+PackReconWts    = zeros(length(myEBSD.Ebsd),1);
+BlockReconWts   = zeros(length(myEBSD.Ebsd),1);
+BlockRecon      = zeros(length(myEBSD.Ebsd),1);
+VariantRecon    = zeros(length(myEBSD.Ebsd),1);
+VariantReconWts = zeros(length(myEBSD.Ebsd),1);
 
-S_Indices = cell(num_grains,1);
-for j = 1:num_grains
-    S_Indices{j} = S_Aus.id(S_Aus.grainId==j);
-end
+%Step 1: do a grain segmentation and assign threshold grain size
+% quick aside to future me, this does NOT delete the small grains, it just
+% rearranges the ordering to grains below the threshold get a new grain ID
+% that is AFTER the threshold "num_grains" and no longer have a polygon
+% related to them in the "PA_grains" object.
+[PA_Grains,myEBSD.Recon.FullEbsd.grainId] = calcGrains(myEBSD.Recon.FullEbsd,'angle',1*degree); 
+[myEBSD.Recon.FullEbsd,PA_Grains,~] = RemSmGrns(myEBSD.Recon.FullEbsd,PA_Grains,100);
+num_grains = size(PA_Grains,1);
 
-Phony_Grains = [];
-Phony_Grains.grains = S_Grains;
-Phony_Grains.Indices=S_Indices;
-Phony_Grains.grainId=grainId;
-%%
-for k = 1:length(Grains.grainId)
-    disp(['now working on Grain ' int2str(k) ' of ' int2str(length(Grains.grainId))])
-            try
+%Step 2: loop over grains above threshold size
+
+for k = 10:length(PA_Grains)-8
+    disp(['now working on Grain ' int2str(k) ' of ' int2str(length(PA_Grains))])
+   %         try
     % Now determine packets for the characterized austenite grains (ignores
     % the unassigned martensite)
-    [Packets] = PacketChar(myEBSD,Grains,k,Packets);
+    [Packets] = PacketChar_Aus(myEBSD,Grains,k,Packets,PA_Grains);
     % The actual austenite id number
     AusId = Packets{k}.AusGrain.id;
     % For each pixel in the EBSD microstructure, fill with the
@@ -200,12 +200,11 @@ for k = 1:length(Grains.grainId)
     BlockReconWts(AusId)   = Packets{k}.Block.Weights;
     VariantRecon(AusId)    = Packets{k}.Variants.List;
     VariantReconWts(AusId) = Packets{k}.Variants.Weights;
-            catch
-                disp(['Error: on grain ' int2str(k) ' The code failed to properly segment the'])
-                disp('packets. This is likely due to a twinning effect.')
-            end
+  %          catch
+ %               disp(['Error: on grain ' int2str(k) ' The code failed to properly segment the'])
+ %               disp('packets. This is likely due to a twinning effect.')
+ %           end
 end
-
 
 
 % Assign these values to the myEBSD structure and then send to the
@@ -256,25 +255,25 @@ end
 myEBSD.Variants.RGB = SubBlckRGB;
 %%% assignin('base','AusGrnPackets',Packets);
 
-%%
+%
 myEBSD = CharMartBoundaries(myEBSD);
 %%% assignin('base','myEBSD',myEBSD);
-%%
+%
 % Now write pertinent data to the text file
 % genTxt(myEBSD,Twin,Grains,filename)
 myEBSD.TwinGrains = Twin;
 myEBSD.ParentGrains = Parent;
-myEBSD.AusGrains = Phony_Grains;
+myEBSD.AusGrains = Grains;
 myEBSD.AusGrnPackets = Packets;
 myEBSD.filename = filename;
 assignin('base','myEBSD',myEBSD);
 
-
-[path,name,~] = fileparts(filename);
-mat_name = [path '/'  name '_Recon.mat'];
-mat_name = strjoin(mat_name, '');
-%save(mat_name, 'myEBSD', '-v7.3')
-save('dummy', 'myEBSD', '-v7.3')
-clear path name
+% 
+% [path,name,~] = fileparts(filename);
+% mat_name = [path '/'  name '_Recon.mat'];
+% mat_name = strjoin(mat_name, '');
+% %save(mat_name, 'myEBSD', '-v7.3')
+% save('dummy', 'myEBSD', '-v7.3')
+% clear path name
 
 PltSubBlocks(myEBSD,1)
