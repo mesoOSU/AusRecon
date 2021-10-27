@@ -294,8 +294,8 @@ for iiii = 1:4
 %    mat_name = [path '/'  name '_1_' int2str(iiii) '_Recon.mat'];
     mat_name = [ name '_5_' int2str(iiii) '_Recon.mat'];
     mat_name = strjoin(mat_name, '');
-    %save(mat_name, 'myEBSD', '-v7.3')
-    save('dummy', 'myEBSD', '-v7.3')
+    save(mat_name, 'myEBSD', '-v7.3')
+    %save('dummy', 'myEBSD', '-v7.3')
     clear path name
     
     PltSubBlocks(myEBSD,1)
