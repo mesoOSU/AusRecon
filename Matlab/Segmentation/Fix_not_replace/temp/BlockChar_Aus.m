@@ -1,4 +1,4 @@
-function [Packet] = BlockChar_Aus(myEBSD,Grains,gId,Packet)
+function [Packet] = BlockChar_Aus(myEBSD,gId,Packet)
 % For each PAG (and underlying twin), identify the corresponding
 % block boundaries for each respective packet
 Aus_Grain = myEBSD.Recon.FullEbsd(myEBSD.Recon.FullEbsd.grainId == gId);

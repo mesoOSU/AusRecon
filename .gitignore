@@ -16,6 +16,12 @@ Matlab/IP_OP_Variation/EBSD/*
 *.mat
 *.asv
 *.zip
+*.ang
+*.png
+*.pptx
+*.jpg
+*.tif
+*.tiff
 #=======================================#
 #Copy/Pasted generic Pythonic gitignore
 #=======================================#

@@ -54,9 +54,9 @@ for ii = 3:length(Fnames)
 
     % Plot 2: Prior Austenite Grains
     mbar = 1;
-    plotEBSD(myEBSD.AusRecon_Ebsd,myEBSD,mbar)
+    plotEBSD(myEBSD.Recon.Ebsd,myEBSD,mbar)
     hold on
-    plot(myEBSD.AusGrains.grains.boundary)
+    plot(myEBSD.AusGrains.boundary)
     set(gcf,'PaperUnits','inches','PaperPosition',[0,0,4,3]);
     set(gcf, 'PaperPositionMode', 'auto')
     Plt1name = [Foldername,'/',Pltname,'_Austenite.png'];
@@ -65,16 +65,16 @@ for ii = 3:length(Fnames)
     % Plot 3: Sub Blocks
     PltSubBlocks(myEBSD,mbar)
     hold on
-    plot(myEBSD.AusGrains.grains.boundary,'FaceColor','white')
+    plot(myEBSD.AusGrains.boundary,'FaceColor','white')
     set(gcf,'PaperUnits','inches','PaperPosition',[0,0,4,3]);
     set(gcf, 'PaperPositionMode', 'auto')
     Plt1name = [Foldername,'/',Pltname,'_Variants.png'];
     saveas(gcf,Plt1name)
 
     % Plot 4: Likelihood plots
-    figure; plot(myEBSD.AusRecon_Ebsd,myEBSD.AusRecon_Likelihood,'MicronBar','off')
+    figure; plot(myEBSD.Recon.Ebsd,myEBSD.Recon.Likelihood,'MicronBar','off')
     hold on
-    plot(myEBSD.AusGrains.grains.boundary,'lineColor','red','linewidth',2)
+    plot(myEBSD.AusGrains.boundary,'lineColor','red','linewidth',2)
     set(gcf,'PaperUnits','inches','PaperPosition',[0,0,4,3]);
     set(gcf, 'PaperPositionMode', 'auto')
     Plt1name = [Foldername,'/',Pltname,'_Likelihood.png'];

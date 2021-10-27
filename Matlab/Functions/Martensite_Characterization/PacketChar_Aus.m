@@ -1,4 +1,4 @@
-function [Packet] = PacketChar_Aus(myEBSD,Grains,gId,Packet,PA_Grains)
+function [Packet] = PacketChar_Aus(myEBSD,gId,Packet)
 %% Intialization
 Aus_Grain = myEBSD.Recon.FullEbsd(myEBSD.Recon.FullEbsd.grainId == gId);
 Mart_Grain = myEBSD.Ebsd(myEBSD.Recon.FullEbsd.grainId == gId);
@@ -207,7 +207,7 @@ Packet{gId}.Weights     = FinalWts;
 Packet{gId}.MaxBounds   = maxid_wts';
 %Packet{gId}.Grain       = Grains.grains(gId);
 
-[Packet] = BlockChar_Aus(myEBSD,Grains,gId,Packet);
+[Packet] = BlockChar_Aus(myEBSD,gId,Packet);
 
 end
 
