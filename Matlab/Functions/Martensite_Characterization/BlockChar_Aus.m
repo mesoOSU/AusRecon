@@ -1,8 +1,8 @@
-function [Packet] = BlockChar(myEBSD,Grains,gId,Packet)
+function [Packet] = BlockChar_Aus(myEBSD,gId,Packet)
 % For each PAG (and underlying twin), identify the corresponding
 % block boundaries for each respective packet
+Aus_Grain = myEBSD.Recon.FullEbsd(myEBSD.Recon.FullEbsd.grainId == gId);
 
-Aus_Grain   = myEBSD.Recon.Ebsd(Grains.Indices{gId});
 MartRecon   = myEBSD.Ebsd;
 CS_T        = myEBSD.CS{2};
 TransID     = myEBSD.Phase.ID{1};
@@ -21,12 +21,6 @@ VarLst = zeros(length(Ptmp.AusGrain),1);
 % If no austenite orientation was assigned to the distribution of
 % martensite variants, don't assign block boundaries or a variant
 % labeling to them.
-if Grains.grainId(gId,2) == TransID
-    Packet{gId}.Block.Boundaries = zeros(length(Ptmp.AusGrain),1);
-    Packet{gId}.Block.Weights        = zeros(length(Ptmp.AusGrain),1);
-    Packet{gId}.Variants.List     = zeros(length(Ptmp.AusGrain),1);
-    Packet{gId}.Variants.Weights     = zeros(length(Ptmp.AusGrain),1);
-else
     
     % Interface parameters (constant for now, see if these do change
     % much with variable steel and ferrous alloy data sets)
@@ -218,7 +212,7 @@ else
     Packet{gId}.Variants.List    = VarLst;
     Packet{gId}.Variants.Weights = VarWts;
     
-end % Conditional statement based on martensite being assigned a g_aus
+% Conditional statement based on martensite being assigned a g_aus
 
 end
 

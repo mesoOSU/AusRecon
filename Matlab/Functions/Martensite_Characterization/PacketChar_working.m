@@ -1,188 +1,168 @@
 function [Packet] = PacketChar(myEBSD,Grains,gId,Packet,Twin)
-    %% Intialization
-    
-%     GrnId = find(Grains.Ebsd.Parent.ID==GrainID);
-    Aus_Grain   = myEBSD.Recon.Ebsd(Grains.Indices{gId});
-    MartRecon   = myEBSD.Ebsd;
+%%                      Function Description
+
+% This function performs martensite packet segmentations on each indexed
+% prior austenite grain using a similar graph cutting approach. Due to
+% inherent noise in the resolution, a de-noising step is also implemented
+% post-transformation to adequately cluster noisier indices into
+% corresponding packets. 
+
+% At the conclusion of the function, the determined packets are sent to 
+% another function for block (and sub-block) characterization.
+
+% Input Variables: myESBD structure; grain boundary structure; grain id
+%                  array; Packet structure; Twin structure
+
+% Output Variables: Structure containing packet information
+
+%%                      Function Implementation
+
+    % Intialization variables
+    RecEb = myEBSD.Recon.Ebsd(myEBSD.Recon.Ebsd.isIndexed);
+    AusGrn   = RecEb(Grains.Indices{gId});
+    MartRecon   = myEBSD.Ebsd(myEBSD.Ebsd.isIndexed);
     CS_T        = myEBSD.CS{2};
-    CS_R        = myEBSD.CS{3};
     TransID     = myEBSD.Phase.ID{1};               
     ReconID     = myEBSD.Phase.ID{2}; 
     SS          = myEBSD.SS;
     ksi         = myEBSD.OR;
-    halfwidth   = myEBSD.noise.halfwidth;
     psi         = myEBSD.noise.psi;
-    T2R         = myEBSD.TransMats{1};
-    R2T         = myEBSD.TransMats{2};
-    %% Start Characterization of Martensite Packet Boundaries
     
+    % Begin characterization of martensite packet boundaries if the
+    % submitted grain region was assigned an austenite phase (not residual,
+    % unassigned martensite)
     if Grains.grainId(gId,2) ~= TransID
-        
-        % Interface parameters (constant for now, see if these do change
-        % much with variable steel and ferrous alloy data sets)
+
+        % Regularization parameters
+        % NOTE: These are constant for now, but you can see if these do
+        % alter the results much. However, I found they were pretty 
+        % consistent across different steel compositions)
         IP = 5;
         OP = 2e-1;
 
-        % Make sure martensite grain doesn't have residual austenite
-        AusIDs            = find(MartRecon.phase==ReconID);
-        MartRecon(AusIDs) = [];
-        Mart_Grain        = MartRecon(Grains.Indices{gId});
+        % Make sure martensite variants within austenite grain don't have
+        % any points marked as residual austenite
+        AusIDs                = find(MartRecon.phase==ReconID);
+        MartRecon(AusIDs)     = [];
+        MartVars              = MartRecon(Grains.Indices{gId});
         
-        count = 0;           
+        % Counter and unique twin variant number (can be from -1; 1 to 4 if a 
+        % twin was ID'd with in the austenite grain)
+        % NOTE: The -1 index only doesn't hold iff ALL 4 twins have been 
+        % identified within the hgihlighted austenite grain
+        TwnCount = 0;           
         twnnum = unique(Grains.grainId(gId,3:6));
         
-        twnnum(1) = [];
+        % Delete -1 index if it exists (redundant)
+        if any(twnnum == -1)
+            twnnum(1) = [];
+        end
+        
+        % Establish Variant (V), Groupoid (G), and temporary indexing
+        % structures
         V = [];
-        G = [];
         tmpInds = [];
         
-        while count <= length(twnnum)
-            count = count+1;
+        % Loop through all indexed twins to identify the correct variant
+        % orientation 
+        while TwnCount <= length(twnnum)
+            TwnCount = TwnCount+1;
             % Assign the appropriate austenite orientation (parent or twin)
             if Grains.grainId(gId,2) == ReconID
-                % Assign austenite orientation and rotate it to Transformation crystal
-                % frame
-                AusOr = Aus_Grain.orientations(1);
+                % Assign the parent orientation if no twins
+                tmpOr = Grains.grains(gId).meanOrientation;
             else
-                % Twin Id
+                % Find the correct twin orientation if a twin exists
                 tId = Grains.grainId(gId,end);
-                if count == 1
-                    AusOr = Twin.Parent.Or{tId};
+                if TwnCount == 1
+                    % Assign parent orientation of parent-twin system
+                    tmpOr = Twin.Parent.Or{tId};
                 else
-                    AusOr = Twin.Single.Or{tId,count-1};
+                    % Assign twin orientations 
+                    tmpOr = Twin.Single.Or{tId,TwnCount-1};
                 end
             end
             
-            % Extract the parent or twin (if it exists) indices
-            tmpInds{count} = find(Aus_Grain.orientations == AusOr);
+            % Extract either the parent or twin EBSD in
+            tmpInds{TwnCount} = find(AusGrn.orientations == tmpOr);
             
-            % Make the chosen austenite orientation a rotation
-            Aus_or(count) = rotation('Euler',AusOr.phi1,AusOr.Phi,AusOr.phi2,CS_T);
+            % Make the chosen austenite orientation a rotation with
+            % martensite crystal symmetry
+            AusOr(TwnCount) = rotation('Euler',tmpOr.phi1,tmpOr.Phi,tmpOr.phi2,CS_T);
 
-            % Compute variants and corresponding groupoid from euler angles
+            % Compute variants and corresponding groupoid from euler angles       
+            % NOTE: For more thorough understanding of groupoids, refer to:
+            % Brust, A.F. et al, "Analysis of Misorientation Relationships
+            % Between Austenite Parents and Twins" (2018)
             [Vtmp,~] = YardleyVariants(ksi);
-            [Gtmp,~] = GroupoidVariantsCubic(Vtmp);
             
             % Now concatenate the variant and groupoid (misorientation)
             % vectors to account for the existance of any twins
             V = vertcat(V,Vtmp);
-            G = vertcat(G,Gtmp);
             
         end
-        
-        % Set up structure of weighted values
-        WTs = zeros(length(Aus_Grain),5);
-        for nn = 1:count
+
+        % Set up structure of weighted values and loop through all possible
+        % packets to establish likelihoods for all
+        % NOTE: Graph cutting is not performed at this time, only
+        % likelihoods are establish for each set of packet-specific
+        % variants
+        WTs = zeros(length(AusGrn),5);
+        for nn = 1:TwnCount
             
             % Since result is a passive rotation, take transpose of variant
-            % transformation indices to convert to active (Consistent with MTEX)
-            % NOTE TOREN: Cryspy is all passive, so skip this transpose step when 
-            % converting reconstruction code for cryspy. Then convert the
-            % transposed variants to euler angles.
-            
-            % Austin Addins
-   %%%         if size(tmpInds{nn},1)<1
-   %%%             disp("whoops")
-   %%%         else 
+            % transformation and convert to active rotation (Consistent
+            % with MTEX) and denote as euler angles
+            % NOTE: Cryspy uses passive notation, so skip this transpose 
+            % step when converting reconstruction code to Python. 
             Vst = 24*(nn-1)+1;
             Vnd = 24*nn;
             for i = Vst:Vnd
                 Vt{i,1} = transpose(V{i});
                 VTeul(i) = orientation('matrix',Vt{i},CS_T);
             end
-
-            % Convert group axis to actual axis and then to Euler angles
-            Ax = vector3d(G(:,2),G(:,3),G(:,4));
-            G_eul = orientation('axis',Ax,'angle',G(:,1),CS_T);
-            % Kappa value
-            kappa=psi.kappa;
-
-            martOrs = Mart_Grain(tmpInds{nn}).orientations;
+            if gId == 5
+                keyboard
+            end
+            % Set all martensite variant orientations within the chosen 
+            % austenite grain boundaries into an array
+            martOrs = MartVars(tmpInds{nn}).orientations;
             len = length(tmpInds{nn});
-            % Initialize the graph
-            grn_graph = digraph;
-            
-            % Indexing start and finish for pertinent misorientations
+
+            % Indexing start and finish for relevant misorientations
             Gst = 16*(nn-1)+1;
             Gnd = Gst+3;
 
-            % Create misorientation distribution functions for block and packet
-            % boundaries, respectively
-            mori_block = symmetrise(G_eul(Gst:Gnd),CS_T);
-            mori_pack = symmetrise(G_eul(Gnd+1:nn*16),CS_T);
-            martblock_modf=calcODF(mori_block,'kernel',psi);
-            martpack_modf = calcODF(mori_pack,'kernel',psi);
-
-            % Create adjacency array based on specific interactions between points
-            % within the input grain
-            [grn_adj,grn_mori,~] = adjpt_moris(Mart_Grain(tmpInds{nn}),1);
-
-            % Assign a sample symmetry to the grain
-            grn_mori.SS = SS;
-
-            % Evaluate misorientations with respect to block-specific values
-            martblock_modfvals = eval(martblock_modf,grn_mori);
-            martblock_modfvals(martblock_modfvals<0)=0;
-            % Now set up our graph
-            grainIP_wts = martblock_modfvals.*IP;
-
+            % Pre-allocate the packet boundaries and packet indices
             Pack_Bounds = zeros(len,1);
             Pack_Pts = [];
 
+            % Iterate through all 4 sets of packets related to either the
+            % parent or twin orientation for segmentation
             for iter = 1:4
                 % ID for group of 6 variants being analyzed and the rest of them
                 tmp1 = (iter-1)*6+1;
                 tmp2 = (iter)*6;
 
-                % Pull variants out
+                % Extract the variant orientations specific to the packet
+                % in question
                 Varsg2t = VTeul(tmp1:tmp2);
-                Varsc2g = VTeul;
-                Varsc2g(tmp1:tmp2) = [];
 
-                % Rotate variant orientations by respective austenite orientation
-                Var_rotg2t = Aus_or(nn) * Varsg2t;
-                Var_rotc2g = Aus_or(nn) * Varsc2g;
+                % Rotate variant orientations by austenite orientation
+                % NOTE: These are the theoretical variants that should have
+                % occured upon transformation of the chosen PAG grain
+                TheoVar_g2t = AusOr(nn) * Varsg2t;
 
                 % Compute ODF for both sets of variants
-                Varg2tODF = calcODF(symmetrise(Var_rotg2t),'kernel',psi);
-                Varc2gODF = calcODF(Var_rotc2g,'kernel',psi);
-
-                % Compute the c2g weights (first set of OP weights)
-                c2g_wts = eval(Varc2gODF,martOrs);
-                c2g_wts(find(c2g_wts<0))=0;
-
+                Varg2tODF = calcODF(symmetrise(TheoVar_g2t),'kernel',psi);
                 % Compute the g2t weights (second set of OP weights)
-        %         g2t_wts = (eval(Varg2tODF,martOrs)+OP(1)).*OP(2); 
                 g2t_wts = eval(Varg2tODF,martOrs);
                 g2t_wts(find(g2t_wts<0))=0;
 
-                % Only if we're on the first iteration should graph be
-                % constructed
-                if iter==1
-                    % Setup graph within the single austenite grain boundaries
-                    [grn_graph,grn_endnode,grn_sinknode] = graph_setup(grn_graph,grn_adj,grainIP_wts,c2g_wts,2);
-                end
-
-                % Add g2t weights to graph
-                grn_graph=rmedge(grn_graph,(1:len)+grn_endnode,grn_sinknode);
-                grn_graph=addedge(grn_graph,(1:len)+grn_endnode,grn_sinknode,g2t_wts);
-
-                % Commence graph cutting
-                [mf_c,gf,cs,ct]=maxflow(grn_graph,1,grn_sinknode);
-                ctcopy = ct;
-                ctcopy(end)=[];
-                grn_ind = ctcopy-grn_endnode;
-
-                % Assign cut out block boundaries, indices and corresponding
-                % likelihoods
+                % Assign the packet-specific weights for all indices
                 Pack_Weights{iter} = g2t_wts;
-
-                % Remove necessary c2t weights and add again
-                grn_graph=rmedge(grn_graph,(1:len)+1,(1:len)+grn_endnode);
-                grn_graph=addedge(grn_graph,(1:len)+1,(1:len)+grn_endnode,c2g_wts);
-
             end
-            
+
             % Vector of the four corresponding packet boundary weights with a zero
             % column
             Weights = zeros(5,len);
@@ -193,13 +173,12 @@ function [Packet] = PacketChar(myEBSD,Grains,gId,Packet,Twin)
             % Now fill in the graph for indices of parents and twins (if
             % they exist)
             WTs(tmpInds{nn},:) = Weights';
-            %Austin Addition
-%%%            end
+            
         end
-%     end
-        %% ``Denoising'' Section (Don't worry about)
-        
-            % Identify max weights
+        %% ``Denoising'' Section of Weighted Values
+       
+            % Identify the maximum weight w/r/t the packets for each
+            % indexed node within the PAG/T
             [max_wts,maxid_wts] = max(WTs');
             zerwts = find(max_wts==0);
 
@@ -210,19 +189,17 @@ function [Packet] = PacketChar(myEBSD,Grains,gId,Packet,Twin)
                 maxid_wts = (maxid_wts-1).*10;
             end
 
-            % Set denoising weights to the same ascribed above in initial cut
+            % Set denoising weights to above packet-specific likelihoods
             DeNoiseWTs = WTs;
             
-            clear grn_adj
-            
-            % Create adjacency array based on specific interactions between points
-            % within the input grain
-            [grn_adj,grn_mori,~] = adjpt_moris(Mart_Grain,1);
+            % Create adjacency array based on specific interactions between 
+            % neighboring nodes
+            [grn_adj,grn_mori,Flg] = adjpt_moris(MartVars,1);
                        
-            % For all zeroed values (noise and otherwise), find adjacent points and
-            % reassign new weighted value as the mean between its surrounding
-            % points weights
-            
+            % If the maximum weight is 0 for all 4 packets, it's likely 
+            % noise. Find the adjacent points with weights > 0 and reassign
+            % a newly weighted value based on the mean weights of
+            % neighboring points
             for jj = 1:length(zerwts)
                 tmpid = zerwts(jj);
                 [r,~]=find(grn_adj==tmpid);
@@ -231,77 +208,93 @@ function [Packet] = PacketChar(myEBSD,Grains,gId,Packet,Twin)
                 DeNoiseWTs(tmpid,:) = mean(WTs(unqadj,:));
             end
 
-            % Take the max of the denoised weights to use as our inplane weights
+            % Take the max of the denoised weights to use as IP weights
             [maxnew_wts,maxnew_wtsID] = max(DeNoiseWTs');
-
-            % Create new graph structure
-            DeNoise_GrnGraph = digraph;
-            len = length(Aus_Grain);
-
-            % Identify the indexing for the maxed weights, and our new inplane
-            % weights become the inverted difference between assigned boundary
-            % value for each adjacent pair
-            maxDN_new_wts1 = maxnew_wtsID(grn_adj(:,1));
-            maxDN_new_wts2 = maxnew_wtsID(grn_adj(:,2));
-            DN_grnIP_wts = IP./abs(maxDN_new_wts1-maxDN_new_wts2);
-            DN_grnIP_wts(DN_grnIP_wts==Inf) = 1e2;
-
-            % First set of OP weights are scaled to 10 
-            DNc2g_wts = ones(length(DeNoiseWTs),1).*10;
-
-            % Create graph
-            [DeNoise_GrnGraph,grn_endnode,grn_sinknode] =...
-                graph_setup(DeNoise_GrnGraph,grn_adj,DN_grnIP_wts,DNc2g_wts,2);
             
+            % Pre-allocate variables
+            len = length(AusGrn);
             Pack_Bounds = zeros(len,1);
+            
+            % Check to make sure the assigned packet is large enough to
+            % establish an graph
+            if Flg
+                Pack_Pts = zeros(length(AusGrn),1);
+            else
+                % Index the  maxed weights and assign new IP weights as the
+                % inverted difference between assigned boundary value for
+                % each adjacent pair
+                maxDN_new_wts1 = maxnew_wtsID(grn_adj(:,1));
+                maxDN_new_wts2 = maxnew_wtsID(grn_adj(:,2));
+                DN_grnIP_wts = IP./abs(maxDN_new_wts1-maxDN_new_wts2);
+                DN_grnIP_wts(DN_grnIP_wts==Inf) = 1e2;
 
-            % Perform denoising cuts
-            for ii = 1:4
-                % DNg2t_wts are just scaled original weights
-                DNg2t_wts = DeNoiseWTs(:,ii+1).*OP;
+                % First set of OP weights are scaled to 10 
+                DNc2g_wts = ones(length(DeNoiseWTs),1).*10;
 
-                % Add g2t weights to graph
-                DeNoise_GrnGraph = ...
-                    rmedge(DeNoise_GrnGraph,(1:len)+grn_endnode,grn_sinknode);
-                DeNoise_GrnGraph = ...
-                    addedge(DeNoise_GrnGraph,(1:len)+grn_endnode,grn_sinknode,DNg2t_wts);
+                % Create graph consisting of nodes within the PAG
+                [DeNoise_Graph,Enode,Snode] =...
+                    graph_setup(grn_adj,DN_grnIP_wts,DNc2g_wts,2);
 
-                % Commence graph cutting
-                [mf_c,gf,cs,ct]=maxflow(DeNoise_GrnGraph,1,grn_sinknode);
-                ctcopy = ct;
-                ctcopy(end)=[];
+                % Perform the denoising cuts, which do utilize the graph
+                % cutting technique to cluster variants into the most
+                % likely packets
+                for ii = 1:4
+                    % Scaled original weights
+                    DNg2t_wts = DeNoiseWTs(:,ii+1).*OP;
+                    
+                    % Ensure real positive weighted values
+                    if any(isnan(DNg2t_wts))
+                        DNg2t_wts(isnan(DNg2t_wts))=0;
+                        DNg2t_wts(DNg2t_wts < 0) = 0;
+                    end
 
-                % Indices for cut
-                DNgrn_ind = ctcopy-grn_endnode;
+                    % Add g2t weights to graph
+                    DeNoise_Graph = ...
+                        rmedge(DeNoise_Graph,(1:len)+Enode,Snode);
+                    DeNoise_Graph = ...
+                        addedge(DeNoise_Graph,(1:len)+Enode,Snode,DNg2t_wts);
 
-                % Assign  boundary values and weights corresponding to cuts
-                Pack_Bounds(DNgrn_ind) = ii;
-                Pack_Pts{ii} = DNgrn_ind;
-                DN_PackWts{ii} = DNg2t_wts;
+                    % Initiate graph cutting
+                    [mf_c,gf,cs,ct]=maxflow(DeNoise_Graph,1,Snode);
+                    ct(end)=[];
+
+                    % Record cut indices
+                    DNgrn_ind = ct-Enode;
+
+                    % Assign packet IDs and corresponding weights
+                    Pack_Bounds(DNgrn_ind) = ii;
+                    Pack_Pts{ii} = DNgrn_ind;
+                    DN_PackWts{ii} = DNg2t_wts;
+                end
             end
             
+            % Establish final weights to be output to RunRecon function
             FinalWts = zeros(length(WTs),1);
             for i = 1:length(WTs)
                 FinalWts(i) = WTs(i,Pack_Bounds(i)+1);
             end
+                
     else
-            Mart_Grain = [];
-            Pack_Bounds = zeros(length(Aus_Grain),1);
-            Pack_Pts = [];
-            FinalWts = zeros(length(Aus_Grain),1);
-            maxid_wts = zeros(length(Aus_Grain),1);
+        % If grain was ID'd as unassigned martensite, establish weighted
+        % values for consistency
+        MartVars = [];
+        Pack_Bounds = zeros(length(AusGrn),1);
+        Pack_Pts = [];
+        FinalWts = zeros(length(AusGrn),1);
+        maxid_wts = zeros(length(AusGrn),1);
     end
-    % Fill in an EBSD data set with the packet boundaries
 
-        % Assign pertinent variables to our ``Packet'' structure
-        Packet{gId}.MartGrains  = Mart_Grain;
-        Packet{gId}.AusGrain    = Aus_Grain;
+        % Assign pertinent variables to output ``Packet'' structure
+        Packet{gId}.MartGrains  = MartVars;
+        Packet{gId}.AusGrain    = AusGrn;
         Packet{gId}.Boundaries  = Pack_Bounds;
         Packet{gId}.BoundaryIDs = Pack_Pts;
         Packet{gId}.Weights     = FinalWts;
         Packet{gId}.MaxBounds   = maxid_wts';
         Packet{gId}.Grain       = Grains.grains(gId);
         
+        % Now, based on packet designations, segment variants within
+        % packets to blocks (and sub-blocks)
         [Packet] = BlockChar(myEBSD,Grains,gId,Packet,Twin);
     
 end
