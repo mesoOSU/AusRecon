@@ -1,9 +1,6 @@
 function [adj_pts,Mori,flag] = adjpt_moris(varargin)
 % compute adjacent measurements
 
-% Create adjacency array based on specific interactions between points
-% within the input grain
-
 Ebsd = varargin{1};
 nn = varargin{2};
 

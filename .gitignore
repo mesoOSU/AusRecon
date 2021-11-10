@@ -12,13 +12,6 @@ archive
 Python/testing
 Matlab/saved_workspaces
 *.mat
-*.png
-*.pptx
-*.ang
-*.jpg
-*.tiff
-*.tif
-*.zip
 
 #=======================================#
 #Copy/Pasted generic Pythonic gitignore

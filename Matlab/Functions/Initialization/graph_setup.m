@@ -6,7 +6,7 @@ Dl = adj_pts(:,1);
 Dr = adj_pts(:,2);
 
 % Add source node
-DiGraph=addnode(DiGraph,1); %apple
+DiGraph=addnode(DiGraph,1);
 
 % Add in current nodes corresponding to the length of the cut out image
 DiGraph=addnode(DiGraph,length(OP_wts));
