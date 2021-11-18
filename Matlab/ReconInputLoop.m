@@ -21,10 +21,10 @@ addpath(genpath('Functions'));
 %https://drive.google.com/drive/folders/1cw21aKhuaXX_yEq_0JA0GJTm7L0Oi91o?usp=sharing
 %ELSZ Storage File location:
 %sftp://sshfs.rdte.afrl.dren.mil/   location: /project/RXCM/DISTRO_A_Datasets_AusRecon
-Foldername = '../EBSD_Data/ang';
+Foldername = '../EBSD_Data/ang_retro';
 % This searches through the folder names and collects them into a single
 % array
-Fnames = dir([Foldername '\' '*.ang']);
+Fnames = dir([Foldername '\' '*June.ang']);
 % The AF96 orientation relationship. The algorithm can now automatically
 % determine it if need be.
 OR = [3.09,8.10,8.48];      % AF96 Sample
