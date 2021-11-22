@@ -254,9 +254,9 @@ function RunRecon(varargin)
     % 8.) Martensite Packet Boundary Characterization
 
     % Preallocate the necessary variables
-    Packets         = [];
-    PackRecon       = zeros(length(myEBSD.Ebsd),1);
-    PackReconWts    = zeros(length(myEBSD.Ebsd),1);
+    %Packets         = [];
+    %PackRecon       = zeros(length(myEBSD.Ebsd),1);
+    %PackReconWts    = zeros(length(myEBSD.Ebsd),1);
     BlockReconWts   = zeros(length(myEBSD.Ebsd),1);
     BlockRecon      = zeros(length(myEBSD.Ebsd),1);
     VariantRecon    = zeros(length(myEBSD.Ebsd),1);
@@ -284,81 +284,81 @@ Phony_Grains = [];
 Phony_Grains.grains = S_Grains;
 Phony_Grains.Indices=S_Indices;
 Phony_Grains.grainId=grainId;
- %%   
-    for k = 12:length(Grains.grainId)
-        disp(['now working on Grain ' int2str(k) ' of ' int2str(length(Phony_Grains.grainId))])
-%        try
-            % Now determine packets for the characterized austenite grains (ignores
-            % the unassigned martensite)
-            [Packets] = PacketChar(myEBSD,Phony_Grains,k,Packets);    
-            % The actual austenite id number
-            AusId = Packets{k}.AusGrain.id;
-            % For each pixel in the EBSD microstructure, fill with the
-            % corresponding packet, block, and variant assignments
-            PackRecon(AusId)       = Packets{k}.Boundaries;
-            PackReconWts(AusId)    = Packets{k}.Weights;
-            BlockRecon(AusId)      = Packets{k}.Block.Boundaries;
-            BlockReconWts(AusId)   = Packets{k}.Block.Weights;
-            VariantRecon(AusId)    = Packets{k}.Variants.List;
-            VariantReconWts(AusId) = Packets{k}.Variants.Weights;
-%        catch
-%            disp(['Error: on grain ' int2str(k) ' The code failed to properly segment the']) 
-%            disp('packets. This is likely due to a twinning effect.')
-%        end
-    end
-    
-    
-    
-    % Assign these values to the myEBSD structure and then send to the
-    % workspace base
-    myEBSD.Packets.IDs = PackRecon;
-    myEBSD.Packets.Wts = PackReconWts;
-    myEBSD.Packets.RGB = [0,0,0;
-                         1,0,0;
-                         0,1,0;
-                         0,0,1;
-                         1,1,0];
-    myEBSD.Blocks.IDs = BlockRecon;
-    myEBSD.Blocks.Wts = BlockReconWts;
-    myEBSD.Blocks.RGB = [0,0,0;
-                        252,122,120;
-                        250,4,0;
-                        102,0,0;
-                        120,252,122;
-                        4,250,0;
-                        0,125,2;
-                        130,125,253;
-                        2,2,250;
-                        1,1,100;
-                        220,220,170;
-                        250,250,2;
-                        227,176,10]./255;
-    myEBSD.Variants.IDs = VariantRecon;
-    myEBSD.Variants.Wts = VariantReconWts;
-    
-    % Assign the sub-block RGB values as well
-    SubBlockRGB = zeros(25,3);
-    RGBcond = [-1*50/255; 50/255];
-    counter = 2;
-    for mm = 2:13
-        tmpRGB = myEBSD.Blocks.RGB(mm,:);
-        CondRGB = tmpRGB > RGBcond(2);
-        BlckRGB = tmpRGB;
-        for nn = 1:2
-            tmpRGB(CondRGB) = tmpRGB(CondRGB) + RGBcond(nn)/2;
-            tmpRGB(tmpRGB > 1) = 1;
-            SubBlckRGB(counter,:) = tmpRGB;
-            counter = counter+1;
-            tmpRGB = BlckRGB;
-        end
-    end
-    
-    % Add RGB values to subblock designations
-    myEBSD.Variants.RGB = SubBlckRGB;
-    %%% assignin('base','AusGrnPackets',Packets);
+%  %%   
+%     for k = 12:length(Grains.grainId)
+%         disp(['now working on Grain ' int2str(k) ' of ' int2str(length(Phony_Grains.grainId))])
+% %        try
+%             % Now determine packets for the characterized austenite grains (ignores
+%             % the unassigned martensite)
+%             [Packets] = PacketChar(myEBSD,Phony_Grains,k,Packets);    
+%             % The actual austenite id number
+%             AusId = Packets{k}.AusGrain.id;
+%             % For each pixel in the EBSD microstructure, fill with the
+%             % corresponding packet, block, and variant assignments
+%             PackRecon(AusId)       = Packets{k}.Boundaries;
+%             PackReconWts(AusId)    = Packets{k}.Weights;
+%             BlockRecon(AusId)      = Packets{k}.Block.Boundaries;
+%             BlockReconWts(AusId)   = Packets{k}.Block.Weights;
+%             VariantRecon(AusId)    = Packets{k}.Variants.List;
+%             VariantReconWts(AusId) = Packets{k}.Variants.Weights;
+% %        catch
+% %            disp(['Error: on grain ' int2str(k) ' The code failed to properly segment the']) 
+% %            disp('packets. This is likely due to a twinning effect.')
+% %        end
+%     end
+%     
+%     
+%     
+%     % Assign these values to the myEBSD structure and then send to the
+%     % workspace base
+%     myEBSD.Packets.IDs = PackRecon;
+%     myEBSD.Packets.Wts = PackReconWts;
+%     myEBSD.Packets.RGB = [0,0,0;
+%                          1,0,0;
+%                          0,1,0;
+%                          0,0,1;
+%                          1,1,0];
+%     myEBSD.Blocks.IDs = BlockRecon;
+%     myEBSD.Blocks.Wts = BlockReconWts;
+%     myEBSD.Blocks.RGB = [0,0,0;
+%                         252,122,120;
+%                         250,4,0;
+%                         102,0,0;
+%                         120,252,122;
+%                         4,250,0;
+%                         0,125,2;
+%                         130,125,253;
+%                         2,2,250;
+%                         1,1,100;
+%                         220,220,170;
+%                         250,250,2;
+%                         227,176,10]./255;
+%     myEBSD.Variants.IDs = VariantRecon;
+%     myEBSD.Variants.Wts = VariantReconWts;
+%     
+%     % Assign the sub-block RGB values as well
+%     SubBlockRGB = zeros(25,3);
+%     RGBcond = [-1*50/255; 50/255];
+%     counter = 2;
+%     for mm = 2:13
+%         tmpRGB = myEBSD.Blocks.RGB(mm,:);
+%         CondRGB = tmpRGB > RGBcond(2);
+%         BlckRGB = tmpRGB;
+%         for nn = 1:2
+%             tmpRGB(CondRGB) = tmpRGB(CondRGB) + RGBcond(nn)/2;
+%             tmpRGB(tmpRGB > 1) = 1;
+%             SubBlckRGB(counter,:) = tmpRGB;
+%             counter = counter+1;
+%             tmpRGB = BlckRGB;
+%         end
+%     end
+%     
+%     % Add RGB values to subblock designations
+%     myEBSD.Variants.RGB = SubBlckRGB;
+%     %%% assignin('base','AusGrnPackets',Packets);
     
     %%
-    myEBSD = CharMartBoundaries(myEBSD);
+    %myEBSD = CharMartBoundaries(myEBSD);
     %%% assignin('base','myEBSD',myEBSD);
     %%
     % Now write pertinent data to the text file
@@ -366,7 +366,7 @@ Phony_Grains.grainId=grainId;
     myEBSD.TwinGrains = Twin;
     myEBSD.ParentGrains = Parent;
     myEBSD.AusGrains = Grains;
-    myEBSD.AusGrnPackets = Packets;
+    %myEBSD.AusGrnPackets = Packets;
     myEBSD.filename = filename;
     assignin('base','myEBSD',myEBSD);
     
