@@ -14,8 +14,19 @@ Matlab/saved_workspaces
 Matlab/IP_OP_Variation/EBSD/*
 !Matlab/IP_OP_Variation/EBSD/AF_001/*
 *.mat
+<<<<<<< HEAD
 *.asv
 *.zip
+=======
+*.png
+*.pptx
+*.ang
+*.jpg
+*.tiff
+*.tif
+*.zip
+
+>>>>>>> 1e124720d7c621957130adc10a1e800798f299a9
 #=======================================#
 #Copy/Pasted generic Pythonic gitignore
 #=======================================#
