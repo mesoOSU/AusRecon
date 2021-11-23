@@ -371,10 +371,10 @@ Phony_Grains.grainId=grainId;
     assignin('base','myEBSD',myEBSD);
     
     
-    [path,name,~] = fileparts(filename);
-    mat_name = [path '/'  name '_Recon.mat'];
+    [spath,name,~] = fileparts(filename);
+    mat_name = {spath '/'  name '_Recon.mat'};
     mat_name = strjoin(mat_name, '');
+    clear spath name
     save(mat_name, 'myEBSD', '-v7.3')
-    clear path name
 
 end
