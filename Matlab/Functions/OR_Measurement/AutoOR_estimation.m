@@ -238,7 +238,7 @@ function [myEBSD] = AutoOR_estimation(myEBSD,vis_m,vis_a,num_Ors,plt_ksi)
                 [Variants flag]=YardleyVariants([ksi1_current,ksi2_proposal,ksi3_current]);
                 if flag_counter>=10
                     flag=0
-                    ksi2_proposal=ksi2_currrent;
+                    %ksi2_proposal=ksi2_currrent;
                     skip=1;
                 end
             end
