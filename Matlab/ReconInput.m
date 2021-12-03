@@ -26,8 +26,7 @@ fnames = {'C:\Users\paytonej\Desktop\EBSD Data-20210707T175853Z-001\EBSD Data\Ul
 'C:\Users\paytonej\Desktop\EBSD Data-20210707T175853Z-001\EBSD Data\P675 Steel\Fine Microstructure\P675_P-RA1-UL\P675_P-RA1-UL.ang',...
 '..\EBSD_Data\AF96_example.ang'};
 
-%fnames = {'..\EBSD_Data\AF96_example.ang'}
-fnames = {'..\EBSD_Data\ang_1\AF_003.ang'}
+fnames = {'..\EBSD_Data\AF96_example.ang'}
 
 for fname_iter = 1:length(fnames)
     close all;

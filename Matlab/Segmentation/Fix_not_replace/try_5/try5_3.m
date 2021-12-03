@@ -1,9 +1,6 @@
 clear all
 close all
 
-rng('shuffle')
-a = rand(30000);
-clear a
 filename = "AF_003.ang";
 setMTEXpref('xAxisDirection','east');
 setMTEXpref('zAxisDirection','outOfPlane');
@@ -15,10 +12,10 @@ IP =  [4,6];
 myEBSD = [];
 % If an OR is provided, set proper variable and continue on. The flag
 % sips the OR determination in lieu of what the user provided.
-%OR_Flag = 1;
-myEBSD.OR = [3.09,8.10,8.48];
-myEBSD.noise.halfwidth = 1.7*degree;
-OR_Flag = 0;
+OR_Flag = 1;
+%myEBSD.OR = [3.09,8.10,8.48];
+%myEBSD.noise.halfwidth = 1.7*degree;
+%OR_Flag = 0;
 
 
 %OR_Flag = 0;
@@ -169,8 +166,8 @@ end
 
 
 
-for iiii = 1:6
-
+for iiii = 1:4
+    
     %% Austin's fantastical Magical Segmentation Fun
     % Step 0: Erase evidence of last attempt
     Packets         = [];
@@ -284,10 +281,10 @@ for iiii = 1:6
     
     [path,name,~] = fileparts(filename);
 %    mat_name = [path '/'  name '_1_' int2str(iiii) '_Recon.mat'];
-    mat_name = [ name '_6_' int2str(iiii) '_Recon.mat'];
+    mat_name = [ name '_3_' int2str(iiii) '_Recon.mat'];
     mat_name = strjoin(mat_name, '');
     save(mat_name, 'myEBSD', '-v7.3')
-%    save('dummy', 'myEBSD', '-v7.3')
+    %save('dummy', 'myEBSD', '-v7.3')
     clear path name
     
     PltSubBlocks(myEBSD,1)
